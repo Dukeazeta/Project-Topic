@@ -8,7 +8,7 @@
 - **Department:** Computer Science
 - **Institution:** Federal University of Petroleum Resources, Effurun
 - **Academic Session:** 2025/2026
-- **Project Title:** **Design and Implementation of a Mobile-First SMS-Based Maternal Care Reminder and Follow-Up Platform for Government Primary Health Centres in Effurun**
+- **Project Title:** **Design and Implementation of a Maternal Care Reminder and Follow-Up System for Primary Health Centres in Effurun**
 
 ## Executive Summary
 

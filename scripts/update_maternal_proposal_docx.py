@@ -73,8 +73,8 @@ def main() -> None:
     doc = Document(TEMPLATE_PATH)
 
     title = (
-        "Project Title: Design and Implementation of a Mobile-First SMS-Based Maternal Care "
-        "Reminder and Follow-Up Platform for Government Primary Health Centres in Effurun"
+        "Project Title: Design and Implementation of a Maternal Care Reminder and "
+        "Follow-Up System for Primary Health Centres in Effurun"
     )
     executive_summary = [
         "Maternal health remains a serious public health concern in Nigeria, and many pregnant women still miss important antenatal and postnatal visits for different reasons. In many government Primary Health Centres (PHCs), follow-up is still done manually, records may be paper-based, and health workers often have limited access to standard computers. At the same time, many women may not own smartphones or may not be confident using digital applications by themselves. These realities make it necessary to design a system that is simple, inclusive, and practical for the local environment.",
