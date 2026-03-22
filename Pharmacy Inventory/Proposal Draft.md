@@ -8,15 +8,15 @@
 - **Department:** Computer Science
 - **Institution:** Federal University of Petroleum Resources, Effurun
 - **Academic Session:** 2025/2026
-- **Project Title:** **Design and Implementation of a Mobile Pharmacy Inventory and Expiry Tracking System for Community Pharmacies in Effurun**
+- **Project Title:** **Design and Implementation of a Mobile Pharmacy Inventory and Expiry Tracking System for Community Pharmacies in Ugbomoro**
 
 ## Executive Summary
 
 Community pharmacies play an important role in medicine access, but many still manage stock manually or with weak record systems. This can make it difficult to know the real stock level of medicines, track batch details, monitor expiry dates, and respond quickly to low-stock situations. When inventory control is weak, the result may be medicine stockouts, expired products on the shelf, product waste, and poor service delivery.
 
-This project focuses on the design and implementation of a mobile pharmacy inventory and expiry tracking system for community pharmacies in Effurun. The system will be built as a standalone mobile-first web application that can be used easily on smartphones and also on laptops where available. It will allow pharmacy staff to register medicines, record batch details, track stock in and stock out, monitor expiry dates, identify low-stock items, and view simple inventory reports through a dashboard.
+This project focuses on the design and implementation of a mobile pharmacy inventory and expiry tracking system for community pharmacies in Ugbomoro. The system will be built as a standalone mobile-first web application that can be used easily on smartphones and also on laptops where available. It will allow pharmacy staff to register medicines, record batch details, track stock in and stock out, monitor expiry dates, identify low-stock items, and view simple inventory reports through a dashboard.
 
-The proposed system is not intended to be a full pharmacy point-of-sale platform. Its main goal is to improve medicine stock control and expiry monitoring in community pharmacies. The expected result is a practical inventory support tool that helps reduce stockouts, reduce waste from expired medicines, and improve the everyday inventory workflow of community pharmacies in Effurun.
+The proposed system is not intended to be a full pharmacy point-of-sale platform. Its main goal is to improve medicine stock control and expiry monitoring in community pharmacies. The expected result is a practical inventory support tool that helps reduce stockouts, reduce waste from expired medicines, and improve the everyday inventory workflow of community pharmacies in Ugbomoro.
 
 ## Background Study
 
@@ -28,7 +28,7 @@ Studies from Nigeria show that expired and unused medicine management remains an
 
 Inventory control methods have also been studied in pharmacy and medicine supply settings beyond Nigeria. Watson et al. (2014) examined inventory control methods in a pharmacy environment and showed the importance of structured inventory practices. Sukendar et al. (2020) further showed that medicine inventory control should consider expiry periods and product returns. These ideas are relevant to this study because a community pharmacy inventory system should not only count products, but should also track expiry risk and give timely alerts.
 
-Based on this background, there is a clear need for a mobile-first digital system that supports community pharmacy staff in Effurun with stock visibility, batch tracking, expiry tracking, and simple reporting.
+Based on this background, there is a clear need for a mobile-first digital system that supports community pharmacy staff in Ugbomoro with stock visibility, batch tracking, expiry tracking, and simple reporting.
 
 ## Problem Statement
 
@@ -36,13 +36,13 @@ Many community pharmacies still rely on manual record keeping or simple methods 
 
 Another challenge is that pharmacy workers may need to update stock records while moving around the shop, not only from a desktop computer. A system that is not mobile-friendly may reduce ease of use and discourage regular updates. If stock information is not entered quickly and accurately, the quality of inventory records becomes weaker.
 
-The problem this project addresses, therefore, is the absence of a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Effurun. Such a system is needed to support medicine registration, batch-based stock tracking, low-stock alerts, near-expiry alerts, and simple reporting in a more practical and reliable way.
+The problem this project addresses, therefore, is the absence of a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Ugbomoro. Such a system is needed to support medicine registration, batch-based stock tracking, low-stock alerts, near-expiry alerts, and simple reporting in a more practical and reliable way.
 
 ## Aim/Objectives
 
 ### Aim
 
-The aim of this project is to design and implement a mobile pharmacy inventory and expiry tracking system for community pharmacies in Effurun.
+The aim of this project is to design and implement a mobile pharmacy inventory and expiry tracking system for community pharmacies in Ugbomoro.
 
 ### Objectives
 
@@ -87,7 +87,7 @@ Community pharmacy workflow includes medicine receiving, stock recording, storag
 | Sukendar et al. (2020), *Medicine Inventory Control by Considering Expiry Periods and Product Returns...* | To improve medicine inventory control while considering expiry periods and returns | Inventory control modelling and analysis | Highlights the importance of expiry-aware inventory management | Not tailored to Nigerian community pharmacy workflow |
 | Federal Ministry of Health and Social Welfare (2025), *FG Moves to Eliminate Drug Stockouts, Launches Digital Inventory Model for Essential Medicines* | To improve medicine availability and reduce stockouts through digital inventory control | National policy and implementation direction | Shows that digital inventory control is currently relevant in Nigeria’s health sector | Policy-level direction; does not provide a focused community pharmacy software solution |
 
-The reviewed works show that medicine stock control, expiry management, and disposal practices remain important pharmacy issues. Some studies focus on disposal practices, some focus on inventory control methods, and others show policy interest in digital inventory solutions. However, very few of them propose a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Effurun.
+The reviewed works show that medicine stock control, expiry management, and disposal practices remain important pharmacy issues. Some studies focus on disposal practices, some focus on inventory control methods, and others show policy interest in digital inventory solutions. However, very few of them propose a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Ugbomoro.
 
 ## Gaps Identified vis-a-vis Technology/Method to Resolve the Identified Gaps
 
@@ -107,7 +107,7 @@ To address these gaps, this project proposes a mobile pharmacy inventory and exp
 5. near-expiry and expired-stock alerts; and
 6. simple dashboard reports.
 
-This approach will make the proposed system more practical for community pharmacies in Effurun where staff need a simple, mobile-friendly way to manage inventory and reduce medicine waste.
+This approach will make the proposed system more practical for community pharmacies in Ugbomoro where staff need a simple, mobile-friendly way to manage inventory and reduce medicine waste.
 
 ## Methodology
 
@@ -128,7 +128,7 @@ The proposed study is expected to deliver the following key outcomes:
 1. **Mobile Pharmacy Inventory Dashboard:** A mobile-first dashboard for community pharmacy staff to manage medicine stock records.
 2. **Expiry Tracking Module:** A system component that records batch expiry dates and flags medicines that are close to expiry or already expired.
 3. **Low-Stock Alert Support:** A dashboard view that highlights medicines that have dropped below the required stock level.
-4. **Improved Inventory Control:** A practical digital tool that can help reduce stockouts, reduce waste, and improve everyday stock management in community pharmacies in Effurun.
+4. **Improved Inventory Control:** A practical digital tool that can help reduce stockouts, reduce waste, and improve everyday stock management in community pharmacies in Ugbomoro.
 
 ## Work-Plan / Time Frame Using Gantt Chart
 

@@ -5,9 +5,10 @@ from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
 
 
-BASE = Path(r"C:\Users\azeta\Documents\School\Project Topic")
-TEMPLATE_PATH = BASE / "Project Proposal.original.docx"
-OUTPUT_PATH = BASE / "Project Proposal - Azeta Duke - Pharmacy Inventory.docx"
+TOPIC_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = TOPIC_DIR.parent
+TEMPLATE_PATH = ROOT_DIR / "Shared" / "References" / "Project Proposal.original.docx"
+OUTPUT_PATH = TOPIC_DIR / "Proposal - Azeta Duke.docx"
 
 
 def has_drawing(run) -> bool:
@@ -47,6 +48,32 @@ def insert_paragraph_after(paragraph, text: str = "", style=None):
     return new_para
 
 
+def replace_case_study_scope(doc: Document) -> None:
+    replacements = {
+        "community pharmacies in Effurun": "community pharmacies in Ugbomoro",
+        "community pharmacy staff in Effurun": "community pharmacy staff in Ugbomoro",
+    }
+
+    for paragraph in doc.paragraphs:
+        text = paragraph.text
+        updated = text
+        for old, new in replacements.items():
+            updated = updated.replace(old, new)
+        if updated != text:
+            set_para_text(paragraph, updated)
+
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    text = paragraph.text
+                    updated = text
+                    for old, new in replacements.items():
+                        updated = updated.replace(old, new)
+                    if updated != text:
+                        set_para_text(paragraph, updated)
+
+
 def find_para(doc: Document, text: str):
     for paragraph in doc.paragraphs:
         if paragraph.text.strip() == text:
@@ -74,22 +101,22 @@ def main() -> None:
 
     title = (
         "Project Title: Design and Implementation of a Mobile Pharmacy Inventory and "
-        "Expiry Tracking System for Community Pharmacies in Effurun"
+        "Expiry Tracking System for Community Pharmacies in Ugbomoro"
     )
     executive_summary = [
         "Community pharmacies play an important role in medicine access, but many still manage stock manually or with weak record systems. This can make it difficult to know the real stock level of medicines, track batch details, monitor expiry dates, and respond quickly to low-stock situations. When inventory control is weak, the result may be medicine stockouts, expired products on the shelf, product waste, and poor service delivery.",
-        "This project focuses on the design and implementation of a mobile pharmacy inventory and expiry tracking system for community pharmacies in Effurun. The system will be built as a standalone mobile-first web application that can be used easily on smartphones and also on laptops where available. It will allow pharmacy staff to register medicines, record batch details, track stock in and stock out, monitor expiry dates, identify low-stock items, and view simple inventory reports through a dashboard. The proposed system is not intended to be a full pharmacy point-of-sale platform. Its main goal is to improve medicine stock control and expiry monitoring in community pharmacies. The expected result is a practical inventory support tool that helps reduce stockouts, reduce waste from expired medicines, and improve the everyday inventory workflow of community pharmacies in Effurun.",
+        "This project focuses on the design and implementation of a mobile pharmacy inventory and expiry tracking system for community pharmacies in Ugbomoro. The system will be built as a standalone mobile-first web application that can be used easily on smartphones and also on laptops where available. It will allow pharmacy staff to register medicines, record batch details, track stock in and stock out, monitor expiry dates, identify low-stock items, and view simple inventory reports through a dashboard. The proposed system is not intended to be a full pharmacy point-of-sale platform. Its main goal is to improve medicine stock control and expiry monitoring in community pharmacies. The expected result is a practical inventory support tool that helps reduce stockouts, reduce waste from expired medicines, and improve the everyday inventory workflow of community pharmacies in Ugbomoro.",
     ]
     background = [
         "Medicine availability is an important part of quality healthcare. When essential medicines are unavailable, patients may not get treatment on time, and pharmacy operations become less reliable. The Federal Ministry of Health and Social Welfare recently launched a digital inventory model for essential medicines as part of efforts to reduce drug stockouts in Nigeria. This shows that inventory visibility and stock control are now receiving greater attention in the Nigerian health sector (Federal Ministry of Health and Social Welfare, 2025).",
         "Community pharmacies are often the first point of contact for medicine access in many communities. For these pharmacies to function well, staff must be able to know what medicines are available, what quantity remains, what batch was received, and which products are close to expiry. However, when records are kept manually, this process can become slow and error-prone. Weak inventory practice may also lead to poor medicine disposal decisions and higher losses.",
         "Studies from Nigeria show that expired and unused medicine management remains an important issue in pharmacy practice. Iweh et al. (2019) examined disposal practices among community pharmacies in southeast Nigeria and showed that expired medication management is a real concern in local pharmacy settings. Akande-Sholabi et al. (2025) also reported results on unused and expired medication practices among healthcare practitioners in Ibadan. These findings support the need for better systems that make medicine tracking easier and more accurate before disposal even becomes necessary.",
-        "Inventory control methods have also been studied in pharmacy and medicine supply settings beyond Nigeria. Watson et al. (2014) examined inventory control methods in a pharmacy environment and showed the importance of structured inventory practices. Sukendar et al. (2020) further showed that medicine inventory control should consider expiry periods and product returns. These ideas are relevant to this study because a community pharmacy inventory system should not only count products, but should also track expiry risk and give timely alerts. Based on this background, there is a clear need for a mobile-first digital system that supports community pharmacy staff in Effurun with stock visibility, batch tracking, expiry tracking, and simple reporting.",
+        "Inventory control methods have also been studied in pharmacy and medicine supply settings beyond Nigeria. Watson et al. (2014) examined inventory control methods in a pharmacy environment and showed the importance of structured inventory practices. Sukendar et al. (2020) further showed that medicine inventory control should consider expiry periods and product returns. These ideas are relevant to this study because a community pharmacy inventory system should not only count products, but should also track expiry risk and give timely alerts. Based on this background, there is a clear need for a mobile-first digital system that supports community pharmacy staff in Ugbomoro with stock visibility, batch tracking, expiry tracking, and simple reporting.",
     ]
     problem = [
         "Many community pharmacies still rely on manual record keeping or simple methods that do not give a clear real-time view of medicine stock. This makes it difficult for pharmacy staff to know what medicines are available, which ones are low in quantity, which batches are nearing expiry, and which products have already expired. As a result, pharmacies may experience stockouts, delayed restocking, poor inventory decisions, and medicine waste.",
         "Another challenge is that pharmacy workers may need to update stock records while moving around the shop, not only from a desktop computer. A system that is not mobile-friendly may reduce ease of use and discourage regular updates. If stock information is not entered quickly and accurately, the quality of inventory records becomes weaker.",
-        "The problem this project addresses, therefore, is the absence of a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Effurun. Such a system is needed to support medicine registration, batch-based stock tracking, low-stock alerts, near-expiry alerts, and simple reporting in a more practical and reliable way.",
+        "The problem this project addresses, therefore, is the absence of a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Ugbomoro. Such a system is needed to support medicine registration, batch-based stock tracking, low-stock alerts, near-expiry alerts, and simple reporting in a more practical and reliable way.",
     ]
     objectives = [
         "To build a mobile-first web system for inventory management in community pharmacies.",
@@ -124,7 +151,7 @@ def main() -> None:
         "Mobile Pharmacy Inventory Dashboard A mobile-first dashboard for community pharmacy staff to manage medicine stock records.",
         "Expiry Tracking Module A system component that records batch expiry dates and flags medicines that are close to expiry or already expired.",
         "Low-Stock Alert Support A dashboard view that highlights medicines that have dropped below the required stock level.",
-        "Improved Inventory Control A practical digital tool that can help reduce stockouts, reduce waste, and improve everyday stock management in community pharmacies in Effurun.",
+        "Improved Inventory Control A practical digital tool that can help reduce stockouts, reduce waste, and improve everyday stock management in community pharmacies in Ugbomoro.",
     ]
     work_items = [
         "Requirement Gathering and Workflow Study Review of community pharmacy inventory workflow, stock control problems, and expiry management needs.",
@@ -171,7 +198,7 @@ def main() -> None:
     for index, text in zip([32, 34, 35], problem):
         set_para_text(doc.paragraphs[index], text)
 
-    set_para_text(doc.paragraphs[38], "To design and implement a mobile pharmacy inventory and expiry tracking system for community pharmacies in Effurun. The specific objectives of the study are as follows:")
+    set_para_text(doc.paragraphs[38], "To design and implement a mobile pharmacy inventory and expiry tracking system for community pharmacies in Ugbomoro. The specific objectives of the study are as follows:")
 
     for index, text in zip([44, 46, 48, 50, 52], conceptual):
         set_para_text(doc.paragraphs[index], text)
@@ -184,8 +211,8 @@ def main() -> None:
         for cell, value in zip(row.cells, values):
             cell.text = value
 
-    set_para_text(doc.paragraphs[62], "The reviewed works show that medicine stock control, expiry management, and disposal practices remain important pharmacy issues. Some studies focus on disposal practices, some focus on inventory control methods, and others show policy interest in digital inventory solutions. However, very few of them propose a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Effurun.")
-    set_para_text(doc.paragraphs[64], "This project addresses that gap by proposing a mobile pharmacy inventory and expiry tracking system that combines medicine registration, batch entry, stock-in and stock-out tracking, quantity monitoring, low-stock alerts, near-expiry alerts, and simple reports in one mobile-friendly platform. This makes the proposed system more practical for community pharmacies in Effurun where staff need a simple way to manage stock and reduce medicine waste.")
+    set_para_text(doc.paragraphs[62], "The reviewed works show that medicine stock control, expiry management, and disposal practices remain important pharmacy issues. Some studies focus on disposal practices, some focus on inventory control methods, and others show policy interest in digital inventory solutions. However, very few of them propose a mobile-first inventory and expiry tracking system designed specifically for community pharmacies in Ugbomoro.")
+    set_para_text(doc.paragraphs[64], "This project addresses that gap by proposing a mobile pharmacy inventory and expiry tracking system that combines medicine registration, batch entry, stock-in and stock-out tracking, quantity monitoring, low-stock alerts, near-expiry alerts, and simple reports in one mobile-friendly platform. This makes the proposed system more practical for community pharmacies in Ugbomoro where staff need a simple way to manage stock and reduce medicine waste.")
 
     section_paragraphs = collect_between(doc, "AIM/OBJECTIVE", "CONCEPTUAL REVIEW")
     objective_paragraphs = [p for p in section_paragraphs if p.style.name == "List Paragraph"]
@@ -293,6 +320,8 @@ def main() -> None:
         text = paragraph.text.strip()
         if any(phrase in text for phrase in banned_phrases):
             delete_paragraph(paragraph)
+
+    replace_case_study_scope(doc)
 
     doc.save(OUTPUT_PATH)
     print(f"Created {OUTPUT_PATH}")

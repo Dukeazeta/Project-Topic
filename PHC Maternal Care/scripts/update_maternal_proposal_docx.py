@@ -5,9 +5,10 @@ from docx.oxml import OxmlElement
 from docx.text.paragraph import Paragraph
 
 
-BASE = Path(r"C:\Users\azeta\Documents\School\Project Topic")
-TEMPLATE_PATH = BASE / "Project Proposal.original.docx"
-OUTPUT_PATH = BASE / "Project Proposal - Azeta Duke - PHC Maternal Care.docx"
+TOPIC_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = TOPIC_DIR.parent
+TEMPLATE_PATH = ROOT_DIR / "Shared" / "References" / "Project Proposal.original.docx"
+OUTPUT_PATH = TOPIC_DIR / "Proposal - Azeta Duke.docx"
 
 
 def has_drawing(run) -> bool:
