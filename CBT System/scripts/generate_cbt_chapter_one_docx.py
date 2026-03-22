@@ -48,6 +48,7 @@ def add_body_paragraph(doc: Document, text: str) -> None:
     paragraph.style = doc.styles["Normal"]
     paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     paragraph.paragraph_format.first_line_indent = Inches(0.5)
+    paragraph.paragraph_format.space_after = Pt(4)
     run = paragraph.add_run(text)
     run.font.name = "Times New Roman"
     run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
@@ -60,6 +61,7 @@ def add_list_paragraph(doc: Document, text: str) -> None:
     paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     paragraph.paragraph_format.left_indent = Inches(0.3)
     paragraph.paragraph_format.first_line_indent = Inches(-0.2)
+    paragraph.paragraph_format.space_after = Pt(3)
     run = paragraph.add_run(text)
     run.font.name = "Times New Roman"
     run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
@@ -71,6 +73,7 @@ def add_term_paragraph(doc: Document, line: str) -> None:
     paragraph = doc.add_paragraph()
     paragraph.style = doc.styles["Normal"]
     paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    paragraph.paragraph_format.space_after = Pt(4)
     run = paragraph.add_run(term + ":")
     run.bold = True
     run.font.name = "Times New Roman"
