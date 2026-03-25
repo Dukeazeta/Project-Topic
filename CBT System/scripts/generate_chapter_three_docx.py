@@ -9,8 +9,8 @@ from docx.shared import Inches, Pt, RGBColor
 
 
 TOPIC_DIR = Path(__file__).resolve().parents[1]
-INPUT_PATH = TOPIC_DIR / "drafts" / "Chapter 02 Draft.md"
-OUTPUT_PATH = TOPIC_DIR / "drafts" / "Chapter 02 - Azeta Duke.docx"
+INPUT_PATH = TOPIC_DIR / "drafts" / "Chapter 03 Draft.md"
+OUTPUT_PATH = TOPIC_DIR / "drafts" / "Chapter 03 - Azeta Duke.docx"
 
 SECTION_HEADING_SPACE_BEFORE = Pt(8)
 BODY_AFTER_HEADING_SPACE_BEFORE = Pt(11)
@@ -82,32 +82,6 @@ def add_heading(doc: Document, text: str, level: int) -> None:
     run.font.size = Pt(14 if level == 1 else 13 if level == 2 else 12)
 
 
-def add_body_paragraph(doc: Document, text: str, *, after_heading: bool = False) -> None:
-    paragraph = doc.add_paragraph()
-    paragraph.style = doc.styles["Normal"]
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    paragraph.paragraph_format.first_line_indent = None
-    paragraph.paragraph_format.left_indent = Inches(0.14)
-    paragraph.paragraph_format.space_after = Pt(0)
-    paragraph.paragraph_format.space_before = BODY_AFTER_HEADING_SPACE_BEFORE if after_heading else Pt(0)
-    paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
-    paragraph.paragraph_format.line_spacing = 2.0
-    add_markdown_runs(paragraph, text, 12)
-
-
-def add_list_paragraph(doc: Document, text: str) -> None:
-    paragraph = doc.add_paragraph()
-    paragraph.style = doc.styles["Normal"]
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    paragraph.paragraph_format.left_indent = Inches(0.45)
-    paragraph.paragraph_format.first_line_indent = Inches(-0.15)
-    paragraph.paragraph_format.space_after = Pt(0)
-    paragraph.paragraph_format.space_before = Pt(0)
-    paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
-    paragraph.paragraph_format.line_spacing = 2.0
-    add_markdown_runs(paragraph, text, 12)
-
-
 def add_markdown_runs(paragraph, text: str, size: int, *, bold_default: bool = False) -> None:
     pattern = re.compile(r"(\*\*.*?\*\*|\*.*?\*)")
     parts = pattern.split(text)
@@ -133,6 +107,32 @@ def add_markdown_runs(paragraph, text: str, size: int, *, bold_default: bool = F
         run.font.name = "Times New Roman"
         run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
         run.font.size = Pt(size)
+
+
+def add_body_paragraph(doc: Document, text: str, *, after_heading: bool = False) -> None:
+    paragraph = doc.add_paragraph()
+    paragraph.style = doc.styles["Normal"]
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    paragraph.paragraph_format.first_line_indent = None
+    paragraph.paragraph_format.left_indent = Inches(0.14)
+    paragraph.paragraph_format.space_after = Pt(0)
+    paragraph.paragraph_format.space_before = BODY_AFTER_HEADING_SPACE_BEFORE if after_heading else Pt(0)
+    paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
+    paragraph.paragraph_format.line_spacing = 2.0
+    add_markdown_runs(paragraph, text, 12)
+
+
+def add_list_paragraph(doc: Document, text: str) -> None:
+    paragraph = doc.add_paragraph()
+    paragraph.style = doc.styles["Normal"]
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    paragraph.paragraph_format.left_indent = Inches(0.45)
+    paragraph.paragraph_format.first_line_indent = Inches(-0.15)
+    paragraph.paragraph_format.space_after = Pt(0)
+    paragraph.paragraph_format.space_before = Pt(0)
+    paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
+    paragraph.paragraph_format.line_spacing = 2.0
+    add_markdown_runs(paragraph, text, 12)
 
 
 def split_markdown_row(line: str) -> list[str]:
@@ -170,6 +170,51 @@ def add_markdown_table(doc: Document, table_lines: list[str]) -> None:
             add_markdown_runs(paragraph, value, 11)
 
 
+def add_image_with_caption(doc: Document, image_path: Path, caption: str) -> None:
+    doc.add_picture(str(image_path), width=Inches(6.0))
+    image_paragraph = doc.paragraphs[-1]
+    image_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    image_paragraph.paragraph_format.space_before = Pt(11)
+    image_paragraph.paragraph_format.space_after = Pt(0)
+
+    caption_paragraph = doc.add_paragraph()
+    caption_paragraph.style = doc.styles["Normal"]
+    caption_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    caption_paragraph.paragraph_format.left_indent = Inches(1.55)
+    caption_paragraph.paragraph_format.first_line_indent = Inches(-1.25)
+    caption_paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
+    caption_paragraph.paragraph_format.line_spacing = 2.0
+    caption_paragraph.paragraph_format.space_before = Pt(0)
+    caption_paragraph.paragraph_format.space_after = Pt(0)
+    caption_run = caption_paragraph.add_run(caption)
+    caption_run.font.name = "Times New Roman"
+    caption_run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
+    caption_run.font.size = Pt(12)
+    caption_run.bold = True
+    caption_run.italic = True
+
+
+def restyle_figure_captions(doc: Document) -> None:
+    for paragraph in doc.paragraphs:
+        text = paragraph.text.strip()
+        if not text.startswith("Figure 3.") or ":" not in text:
+            continue
+        paragraph.style = doc.styles["Normal"]
+        paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        paragraph.paragraph_format.left_indent = Inches(1.55)
+        paragraph.paragraph_format.first_line_indent = Inches(-1.25)
+        paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
+        paragraph.paragraph_format.line_spacing = 2.0
+        paragraph.paragraph_format.space_before = Pt(0)
+        paragraph.paragraph_format.space_after = Pt(0)
+        for run in paragraph.runs:
+            run.font.name = "Times New Roman"
+            run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
+            run.font.size = Pt(12)
+            run.bold = True
+            run.italic = True
+
+
 def main() -> None:
     doc = Document()
     set_default_font(doc)
@@ -198,6 +243,9 @@ def main() -> None:
         elif line.startswith("#### "):
             add_heading(doc, line[5:].strip(), 4)
             previous_was_heading = True
+        elif line.startswith("##### "):
+            add_heading(doc, line[6:].strip(), 5)
+            previous_was_heading = True
         elif line[:2].isdigit() and line[1] == ".":
             add_list_paragraph(doc, line)
             previous_was_heading = False
@@ -213,11 +261,21 @@ def main() -> None:
             add_markdown_table(doc, table_lines)
             previous_was_heading = False
             continue
+        elif line.startswith("![") and "](" in line and line.endswith(")"):
+            match = re.match(r"!\[(.*?)\]\((.*?)\)", line)
+            if match:
+                caption = match.group(1).strip()
+                image_ref = match.group(2).strip()
+                image_path = (INPUT_PATH.parent / image_ref).resolve()
+                if image_path.exists():
+                    add_image_with_caption(doc, image_path, caption)
+            previous_was_heading = False
         else:
             add_body_paragraph(doc, line, after_heading=previous_was_heading)
             previous_was_heading = False
         i += 1
 
+    restyle_figure_captions(doc)
     doc.save(OUTPUT_PATH)
     print(f"Created {OUTPUT_PATH}")
 

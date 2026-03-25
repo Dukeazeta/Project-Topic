@@ -1,10 +1,11 @@
 from pathlib import Path
 
 from docx import Document
+from docx.oxml import OxmlElement
 from docx.enum.section import WD_SECTION
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Pt, RGBColor
 
 
 TOPIC_DIR = Path(__file__).resolve().parents[1]
@@ -32,6 +33,36 @@ def set_margins(doc: Document) -> None:
         section.right_margin = Inches(1)
 
 
+def add_page_number_footer(section, *, roman: bool, hide_first: bool) -> None:
+    section.different_first_page_header_footer = hide_first
+
+    pg_num = section._sectPr.find(qn("w:pgNumType"))
+    if pg_num is None:
+        pg_num = OxmlElement("w:pgNumType")
+        section._sectPr.append(pg_num)
+    pg_num.set(qn("w:start"), "1")
+    pg_num.set(qn("w:fmt"), "lowerRoman" if roman else "decimal")
+
+    footer = section.footer
+    paragraph = footer.paragraphs[0]
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = paragraph.add_run()
+    fld_begin = OxmlElement("w:fldChar")
+    fld_begin.set(qn("w:fldCharType"), "begin")
+    instr = OxmlElement("w:instrText")
+    instr.set(qn("xml:space"), "preserve")
+    instr.text = " PAGE "
+    fld_end = OxmlElement("w:fldChar")
+    fld_end.set(qn("w:fldCharType"), "end")
+    run._r.append(fld_begin)
+    run._r.append(instr)
+    run._r.append(fld_end)
+    run.font.name = "Times New Roman"
+    run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
+    run.font.size = Pt(12)
+    run.font.color.rgb = RGBColor(0, 0, 0)
+
+
 def add_paragraph(
     doc: Document,
     text: str = "",
@@ -46,8 +77,11 @@ def add_paragraph(
     paragraph = doc.add_paragraph()
     paragraph.alignment = align
     paragraph.paragraph_format.space_after = Pt(space_after)
+    paragraph.paragraph_format.space_before = Pt(0)
     if first_line_indent:
         paragraph.paragraph_format.first_line_indent = Inches(first_line_indent)
+        paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
+        paragraph.paragraph_format.line_spacing = 2.0
 
     run = paragraph.add_run(text.upper() if uppercase else text)
     run.bold = bold
@@ -84,9 +118,11 @@ def build_cover_page(doc: Document) -> None:
     add_blank_lines(doc, 2)
     add_paragraph(doc, "DEPARTMENT OF COMPUTER SCIENCE", align=WD_ALIGN_PARAGRAPH.CENTER, bold=True, uppercase=True)
     add_blank_lines(doc, 1)
+    add_paragraph(doc, "COLLEGE OF SCIENCE", align=WD_ALIGN_PARAGRAPH.CENTER, bold=True, uppercase=True)
+    add_blank_lines(doc, 1)
     add_paragraph(
         doc,
-        "FEDERAL UNIVERSITY OF PETROLEUM RESOURCES, EFFURUN",
+        "FEDERAL UNIVERSITY OF PETROLEUM RESOURCES, EFFURUN, DELTA STATE, NIGERIA",
         align=WD_ALIGN_PARAGRAPH.CENTER,
         bold=True,
         uppercase=True,
@@ -107,8 +143,37 @@ def build_title_page(doc: Document) -> None:
     add_blank_lines(doc, 2)
     add_paragraph(
         doc,
-        "A PROJECT SUBMITTED TO THE DEPARTMENT OF COMPUTER SCIENCE, FEDERAL UNIVERSITY OF PETROLEUM "
-        "RESOURCES, EFFURUN, IN PARTIAL FULFILMENT OF THE REQUIREMENTS FOR THE AWARD OF BACHELOR OF "
+        "A PROJECT SUBMITTED TO THE",
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        uppercase=True,
+    )
+    add_paragraph(
+        doc,
+        "DEPARTMENT OF COMPUTER SCIENCE,",
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        uppercase=True,
+    )
+    add_paragraph(
+        doc,
+        "COLLEGE OF SCIENCE, FEDERAL UNIVERSITY OF PETROLEUM RESOURCES,",
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        uppercase=True,
+    )
+    add_paragraph(
+        doc,
+        "EFFURUN, DELTA STATE",
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        uppercase=True,
+    )
+    add_blank_lines(doc, 1)
+    add_paragraph(
+        doc,
+        "IN PARTIAL FULFILMENT FOR THE AWARD OF A BACHELOR OF",
+        align=WD_ALIGN_PARAGRAPH.CENTER,
+        uppercase=True,
+    )
+    add_paragraph(
+        doc,
         "SCIENCE (B.Sc.) DEGREE IN COMPUTER SCIENCE",
         align=WD_ALIGN_PARAGRAPH.CENTER,
         bold=False,
@@ -126,8 +191,10 @@ def build_declaration(doc: Document) -> None:
         'I, Azeta Duke, with matriculation number COS/8650/2021, hereby declare that this project '
         'titled, "Design and Implementation of a Mobile-First Anti-Cheat CBT Platform for the '
         'Department of Computer Science, Federal University of Petroleum Resources, Effurun" was '
-        "carried out by me under the supervision of Dr Nwozor Blessing. This project is original "
-        "and has not been submitted in part or in full for the award of any degree in this or any "
+        "carried out by me under the supervision of Dr Nwozor Blessing, in partial fulfilment of "
+        "the requirement for the award of B.Sc. Computer Science from the Department of Computer "
+        "Science, Federal University of Petroleum Resources, Effurun. This project is original and "
+        "has not been submitted in part or in full for the award of any degree in this or any "
         "other institution.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY,
         first_line_indent=0.5,
@@ -146,9 +213,9 @@ def build_certification(doc: Document) -> None:
         'This is to certify that this project titled, "Design and Implementation of a Mobile-First '
         'Anti-Cheat CBT Platform for the Department of Computer Science, Federal University of '
         "Petroleum Resources, Effurun\" was carried out by Azeta Duke with matriculation number "
-        "COS/8650/2021, and is approved in partial fulfilment of the requirements for the award of "
-        "Bachelor of Science (B.Sc.) degree in Computer Science, Federal University of Petroleum "
-        "Resources, Effurun.",
+        "COS/8650/2021, and has been approved by the undersigned having met the partial requirement "
+        "for the award of a Bachelor of Science (B.Sc.) degree in Computer Science from the "
+        "Department of Computer Science, Federal University of Petroleum Resources, Effurun.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY,
         first_line_indent=0.5,
     )
@@ -210,28 +277,33 @@ def main() -> None:
     doc = Document()
     set_default_font(doc)
     set_margins(doc)
+    add_page_number_footer(doc.sections[0], roman=True, hide_first=True)
 
     build_cover_page(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_title_page(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_declaration(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_certification(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_dedication(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_acknowledgements(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_abstract(doc)
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_placeholder_page(
         doc,
         "TABLE OF CONTENTS",
         [
-            "This page should be generated after Chapters One to Five are completed.",
-            "",
-            "Expected order:",
             "Declaration",
             "Certification",
             "Dedication",
@@ -241,7 +313,20 @@ def main() -> None:
             "List of Figures",
             "List of Tables",
             "CHAPTER ONE",
+            "INTRODUCTION",
+            "1.1 BACKGROUND OF THE STUDY",
+            "1.2 STATEMENT OF THE PROBLEM",
+            "1.3 AIM AND OBJECTIVES OF THE STUDY",
+            "1.4 SIGNIFICANCE OF THE STUDY",
+            "1.5 SCOPE OF THE STUDY",
+            "1.6 DEFINITION OF TERMS",
             "CHAPTER TWO",
+            "LITERATURE REVIEW",
+            "2.1 THEORETICAL REVIEW OR CONCEPTUAL REVIEW",
+            "2.2 OTHER LITERATURE ON PREVIOUS APPROACHES, THEORIES, AND TECHNIQUES",
+            "2.3 REVIEW OF RELATED WORKS",
+            "2.4 SUMMARY OF LITERATURE REVIEW",
+            "2.5 GAPS IN RELATED WORKS",
             "CHAPTER THREE",
             "CHAPTER FOUR",
             "CHAPTER FIVE",
@@ -250,13 +335,11 @@ def main() -> None:
         ],
     )
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_placeholder_page(
         doc,
         "LIST OF FIGURES",
         [
-            "This page should be generated after the full project is completed.",
-            "",
-            "Example format:",
             "Figure 3.1: System Architecture",
             "Figure 3.2: Use Case Diagram",
             "Figure 4.1: Admin Dashboard",
@@ -264,13 +347,11 @@ def main() -> None:
         ],
     )
     add_page_break(doc)
+    add_page_number_footer(doc.sections[-1], roman=True, hide_first=False)
     build_placeholder_page(
         doc,
         "LIST OF TABLES",
         [
-            "This page should be generated after the full project is completed.",
-            "",
-            "Example format:",
             "Table 2.1: Summary of Reviewed Literature",
             "Table 3.1: System Requirements",
             "Table 4.1: Test Cases and Results",

@@ -10,7 +10,9 @@ COS/8650/2021
 
 DEPARTMENT OF COMPUTER SCIENCE
 
-FEDERAL UNIVERSITY OF PETROLEUM RESOURCES, EFFURUN
+COLLEGE OF SCIENCE
+
+FEDERAL UNIVERSITY OF PETROLEUM RESOURCES, EFFURUN, DELTA STATE, NIGERIA
 
 MARCH, 2026
 
@@ -28,13 +30,23 @@ AZETA DUKE
 
 COS/8650/2021
 
-A PROJECT SUBMITTED TO THE DEPARTMENT OF COMPUTER SCIENCE, FEDERAL UNIVERSITY OF PETROLEUM RESOURCES, EFFURUN, IN PARTIAL FULFILMENT OF THE REQUIREMENTS FOR THE AWARD OF BACHELOR OF SCIENCE (B.Sc.) DEGREE IN COMPUTER SCIENCE
+A PROJECT SUBMITTED TO THE
+
+DEPARTMENT OF COMPUTER SCIENCE,
+
+COLLEGE OF SCIENCE, FEDERAL UNIVERSITY OF PETROLEUM RESOURCES,
+
+EFFURUN, DELTA STATE
+
+IN PARTIAL FULFILMENT FOR THE AWARD OF A BACHELOR OF
+
+SCIENCE (B.Sc.) DEGREE IN COMPUTER SCIENCE
 
 MARCH, 2026
 
 ## iii. DECLARATION
 
-I, Azeta Duke, with matriculation number COS/8650/2021, hereby declare that this project titled, "Design and Implementation of a Mobile-First Anti-Cheat CBT Platform for the Department of Computer Science, Federal University of Petroleum Resources, Effurun" was carried out by me under the supervision of Dr Nwozor Blessing. This project is original and has not been submitted in part or in full for the award of any degree in this or any other institution.
+I, Azeta Duke, with matriculation number COS/8650/2021, hereby declare that this project titled, "Design and Implementation of a Mobile-First Anti-Cheat CBT Platform for the Department of Computer Science, Federal University of Petroleum Resources, Effurun" was carried out by me under the supervision of Dr Nwozor Blessing, in partial fulfilment of the requirement for the award of B.Sc. Computer Science from the Department of Computer Science, Federal University of Petroleum Resources, Effurun. This project is original and has not been submitted in part or in full for the award of any degree in this or any other institution.
 
 ______________________________  
 Azeta Duke  
@@ -48,7 +60,7 @@ Date: ______________________
 
 ## iv. CERTIFICATION
 
-This is to certify that this project titled, "Design and Implementation of a Mobile-First Anti-Cheat CBT Platform for the Department of Computer Science, Federal University of Petroleum Resources, Effurun" was carried out by Azeta Duke with matriculation number COS/8650/2021, and is approved in partial fulfilment of the requirements for the award of Bachelor of Science (B.Sc.) degree in Computer Science, Federal University of Petroleum Resources, Effurun.
+This is to certify that this project titled, "Design and Implementation of a Mobile-First Anti-Cheat CBT Platform for the Department of Computer Science, Federal University of Petroleum Resources, Effurun" was carried out by Azeta Duke with matriculation number COS/8650/2021, and has been approved by the undersigned having met the partial requirement for the award of a Bachelor of Science (B.Sc.) degree in Computer Science from the Department of Computer Science, Federal University of Petroleum Resources, Effurun.
 
 ______________________________  
 Dr Nwozor Blessing  
@@ -90,9 +102,6 @@ The system was developed to improve examination management, fairness, and usabil
 
 ## viii. TABLE OF CONTENTS
 
-This page should be generated after Chapters One to Five are completed.
-
-Expected order:
 - Declaration
 - Certification
 - Dedication
@@ -102,7 +111,20 @@ Expected order:
 - List of Figures
 - List of Tables
 - CHAPTER ONE
+- INTRODUCTION
+- 1.1 BACKGROUND OF THE STUDY
+- 1.2 STATEMENT OF THE PROBLEM
+- 1.3 AIM AND OBJECTIVES OF THE STUDY
+- 1.4 SIGNIFICANCE OF THE STUDY
+- 1.5 SCOPE OF THE STUDY
+- 1.6 DEFINITION OF TERMS
 - CHAPTER TWO
+- LITERATURE REVIEW
+- 2.1 THEORETICAL REVIEW OR CONCEPTUAL REVIEW
+- 2.2 OTHER LITERATURE ON PREVIOUS APPROACHES, THEORIES, AND TECHNIQUES
+- 2.3 REVIEW OF RELATED WORKS
+- 2.4 SUMMARY OF LITERATURE REVIEW
+- 2.5 GAPS IN RELATED WORKS
 - CHAPTER THREE
 - CHAPTER FOUR
 - CHAPTER FIVE
@@ -111,9 +133,6 @@ Expected order:
 
 ## ix. LIST OF FIGURES
 
-This page should be generated after the full project is completed.
-
-Example format:
 - Figure 3.1: System Architecture
 - Figure 3.2: Use Case Diagram
 - Figure 4.1: Admin Dashboard
@@ -121,9 +140,6 @@ Example format:
 
 ## x. LIST OF TABLES
 
-This page should be generated after the full project is completed.
-
-Example format:
 - Table 2.1: Summary of Reviewed Literature
 - Table 3.1: System Requirements
 - Table 4.1: Test Cases and Results
