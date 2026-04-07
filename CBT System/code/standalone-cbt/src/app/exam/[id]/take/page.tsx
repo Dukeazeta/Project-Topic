@@ -144,8 +144,8 @@ export default function ExamTakePage() {
 
   if (!data) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p>Preparing your exam session...</p>
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
+        <div className="animate-spin h-10 w-10 border-4 border-gray-200 border-t-accent rounded-full" />
       </main>
     );
   }
@@ -153,29 +153,29 @@ export default function ExamTakePage() {
   return (
     <main className="min-h-screen px-3 py-4 sm:px-6">
       <div className="mx-auto max-w-6xl space-y-4">
-        <section className="rounded-[1.75rem] border border-[var(--line)] bg-[var(--panel)] p-4 sm:p-6">
+        <section className="border border-border bg-white/95 p-4 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">Live Exam</p>
-              <h1 className="mt-2 text-2xl font-semibold">{data.title}</h1>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Live Exam</p>
+              <h1 className="mt-2 text-2xl font-medium">{data.title}</h1>
             </div>
-            <div className="rounded-full border border-[var(--line)] bg-[var(--panel-alt)] px-4 py-2 text-sm font-medium">
+            <div className="border border-border bg-white px-4 py-2 text-sm font-medium">
               Time Left: {formatted}
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm text-[var(--muted)]">
+          <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted-foreground">
             <span>Warnings: {data.warningCount}/{data.maxViolations}</span>
             <span>Status: {data.status}</span>
           </div>
-          {warning ? <p className="mt-3 text-sm text-[var(--danger)]">{warning}</p> : null}
+          {warning ? <p className="mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 text-sm">{warning}</p> : null}
         </section>
 
         <div className="grid gap-4 xl:grid-cols-[1fr_280px]">
           <section className="space-y-4">
             {(data.questions || []).map((question: any, index: number) => (
-              <article id={`question-${question.id}`} key={question.id} className="rounded-[1.75rem] border border-[var(--line)] bg-[var(--panel)] p-5">
+              <article id={`question-${question.id}`} key={question.id} className="border border-border bg-white/85 p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">
+                  <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
                     Question {index + 1}
                   </p>
                   {data.timerMode === "per_question" ? (
@@ -188,7 +188,7 @@ export default function ExamTakePage() {
                           body: JSON.stringify({ questionId: question.id }),
                         });
                       }}
-                      className="rounded-full border border-[var(--line)] px-3 py-1 text-xs"
+                      className="border border-border px-3 py-1 text-xs hover:bg-accent/5 transition-colors"
                     >
                       Start question timer
                     </button>
@@ -208,10 +208,10 @@ export default function ExamTakePage() {
                     <button
                       key={letter}
                       onClick={() => void saveAnswer(question.id, letter)}
-                      className={`rounded-2xl border px-4 py-4 text-left text-sm ${
+                      className={`border px-4 py-4 text-left text-sm transition-colors ${
                         answers[question.id] === letter
-                          ? "border-[var(--accent)] bg-[var(--panel-alt)]"
-                          : "border-[var(--line)] bg-white"
+                          ? "border-accent bg-accent/5"
+                          : "border-border bg-white hover:bg-accent/5"
                       }`}
                     >
                       <span className="font-semibold">{letter}.</span> {text}
@@ -222,14 +222,14 @@ export default function ExamTakePage() {
             ))}
           </section>
 
-          <aside className="rounded-[1.75rem] border border-[var(--line)] bg-[var(--panel)] p-5 h-max xl:sticky xl:top-4">
-            <h2 className="text-xl font-semibold">Navigator</h2>
+          <aside className="border border-border bg-white p-5 h-max xl:sticky xl:top-4">
+            <h2 className="text-xl font-medium">Navigator</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {(data.questions || []).map((question: any, index: number) => (
                 <a
                   key={question.id}
                   href={`#question-${question.id}`}
-                  className="rounded-full border border-[var(--line)] px-3 py-1 text-xs"
+                  className="border border-border px-3 py-1 text-xs hover:bg-accent/5 transition-colors"
                 >
                   {index + 1}
                 </a>
@@ -238,7 +238,7 @@ export default function ExamTakePage() {
             <button
               onClick={() => void handleSubmit(false, false)}
               disabled={submitting || data.status !== "in_progress"}
-              className="mt-6 w-full rounded-full bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-foreground)]"
+              className="mt-6 w-full bg-accent px-4 py-3 text-sm font-medium text-accent-foreground"
             >
               {submitting ? "Submitting..." : "Submit Exam"}
             </button>

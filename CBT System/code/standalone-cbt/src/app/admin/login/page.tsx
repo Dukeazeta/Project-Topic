@@ -35,10 +35,10 @@ export default function AdminLoginPage() {
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-xl rounded-[2rem] border border-[var(--line)] bg-[var(--panel)] p-8 shadow-[0_20px_80px_rgba(23,18,13,0.08)]">
-        <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">Admin Access</p>
-        <h1 className="mt-4 text-4xl font-semibold">Sign in to the standalone CBT dashboard.</h1>
-        <p className="mt-3 text-base leading-8 text-[var(--muted)]">
+      <div className="mx-auto max-w-xl border border-border bg-white p-8">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Admin Access</p>
+        <h1 className="mt-4 text-4xl font-medium">Sign in to the standalone CBT dashboard.</h1>
+        <p className="mt-3 text-base leading-8 text-muted-foreground">
           Use the local admin account created for this standalone app.
         </p>
 
@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
             <input
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 outline-none"
+              className="w-full border border-border bg-white px-4 py-3 outline-none focus:ring-1 focus:ring-accent"
               placeholder="admin@example.com"
               type="email"
               required
@@ -59,17 +59,17 @@ export default function AdminLoginPage() {
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 outline-none"
+              className="w-full border border-border bg-white px-4 py-3 outline-none focus:ring-1 focus:ring-accent"
               placeholder="Password"
               type="password"
               required
             />
           </label>
-          {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+          {error ? <p className="text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2">{error}</p> : null}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-[var(--accent-foreground)] disabled:opacity-70"
+            className="w-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground disabled:opacity-70"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

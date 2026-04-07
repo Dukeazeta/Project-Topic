@@ -85,11 +85,11 @@ export function StudentsManager() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--panel)] p-6">
+      <section className="border border-border bg-white/80 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">Student Management</p>
-            <h2 className="mt-2 text-2xl font-semibold">Create and manage exam candidates.</h2>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Student Management</p>
+            <h2 className="mt-2 text-2xl font-medium">Create and manage exam candidates.</h2>
           </div>
           <div>
             <input
@@ -104,7 +104,7 @@ export function StudentsManager() {
             />
             <button
               onClick={() => fileRef.current?.click()}
-              className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium"
+              className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
             >
               Import Excel
             </button>
@@ -115,21 +115,21 @@ export function StudentsManager() {
           <input
             value={form.matricNo}
             onChange={(event) => setForm((current) => ({ ...current, matricNo: event.target.value }))}
-            className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3"
+            className="border border-border bg-white px-4 py-3"
             placeholder="Matric number"
             required
           />
           <input
             value={form.surname}
             onChange={(event) => setForm((current) => ({ ...current, surname: event.target.value }))}
-            className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3"
+            className="border border-border bg-white px-4 py-3"
             placeholder="Surname"
             required
           />
           <input
             value={form.firstName}
             onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))}
-            className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3"
+            className="border border-border bg-white px-4 py-3"
             placeholder="First name"
             required
           />
@@ -137,7 +137,7 @@ export function StudentsManager() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-medium text-[var(--accent-foreground)]"
+              className="bg-accent px-5 py-2 text-sm font-medium text-accent-foreground"
             >
               {saving ? "Saving..." : editingId ? "Update Student" : "Add Student"}
             </button>
@@ -148,7 +148,7 @@ export function StudentsManager() {
                   setEditingId(null);
                   setForm(emptyForm);
                 }}
-                className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium"
+                className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
               >
                 Cancel Edit
               </button>
@@ -156,19 +156,19 @@ export function StudentsManager() {
           </div>
         </form>
 
-        {message ? <p className="mt-4 text-sm text-[var(--muted)]">{message}</p> : null}
+        {message ? <p className="mt-4 text-sm text-muted-foreground">{message}</p> : null}
       </section>
 
-      <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--panel)] p-6">
+      <section className="border border-border bg-white/80 p-6">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-semibold">Student List</h3>
-          <span className="text-sm text-[var(--muted)]">{students.length} students</span>
+          <span className="text-sm text-muted-foreground">{students.length} students</span>
         </div>
 
         <div className="mt-5 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="border-b border-[var(--line)] text-left text-[var(--muted)]">
+              <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="pb-3 pr-4">Matric No</th>
                 <th className="pb-3 pr-4">Surname</th>
                 <th className="pb-3 pr-4">First Name</th>
@@ -190,7 +190,7 @@ export function StudentsManager() {
                 </tr>
               ) : (
                 students.map((student) => (
-                  <tr key={student.id} className="border-b border-[var(--line)]/60">
+                  <tr key={student.id} className="border-b border-border/60">
                     <td className="py-4 pr-4">{student.matricNo}</td>
                     <td className="py-4 pr-4">{student.surname}</td>
                     <td className="py-4 pr-4">{student.firstName}</td>
@@ -198,13 +198,13 @@ export function StudentsManager() {
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => startEdit(student)}
-                          className="rounded-full border border-[var(--line)] px-3 py-1"
+                          className="border border-border px-3 py-1 hover:bg-accent/5 transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => void remove(student.id)}
-                          className="rounded-full border border-[var(--line)] px-3 py-1 text-[var(--danger)]"
+                          className="border border-border px-3 py-1 text-red-600 hover:bg-red-50 transition-colors"
                         >
                           Delete
                         </button>

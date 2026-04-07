@@ -1,21 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f4ee;
-  --foreground: #17120d;
-  --panel: #fffdf8;
-  --panel-alt: #efe8da;
-  --line: #d9ccb8;
-  --accent: #14532d;
-  --accent-foreground: #f8fff9;
-  --danger: #9f1239;
-  --muted: #6b6258;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --muted: #f4f6fb;
+  --muted-foreground: #374151;
+  --border: #e5e7eb;
+  --accent: #0a0a0a;
+  --accent-foreground: #ffffff;
+  --primary: #3b82f6;
+  --danger: #b91c1c;
+  --panel: #ffffff;
+  --panel-alt: #f9fafb;
+  --line: #e5e7eb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Georgia", "Times New Roman", serif;
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --font-sans: "Arial", "Helvetica", sans-serif;
 }
 
 * {
@@ -27,10 +36,13 @@ html {
 }
 
 body {
-  background: linear-gradient(180deg, #f7f4ee 0%, #f0eadf 100%);
+  background: linear-gradient(to bottom right, #ffffff, #f9fafb, #f3f4f6);
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -43,4 +55,13 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--primary);
+  color: #ffffff;
 }

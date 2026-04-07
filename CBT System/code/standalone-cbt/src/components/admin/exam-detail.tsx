@@ -127,36 +127,36 @@ export function ExamDetail({ examId }: { examId: string }) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--panel)] p-6">
+      <section className="border border-border bg-white/80 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">{data.exam.courseCode}</p>
-            <h2 className="mt-2 text-3xl font-semibold">{data.exam.title}</h2>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">{data.exam.courseCode}</p>
+            <h2 className="mt-2 text-3xl font-medium">{data.exam.title}</h2>
           </div>
           <a
             href={`/exam/${data.exam.id}`}
             target="_blank"
-            className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium"
+            className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
           >
             Open Public Exam Link
           </a>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <input value={settings.title} onChange={(e) => setSettings({ ...settings, title: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
-          <input value={settings.courseCode} onChange={(e) => setSettings({ ...settings, courseCode: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
-          <input type="number" value={settings.duration} onChange={(e) => setSettings({ ...settings, duration: Number(e.target.value) })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
-          <input type="number" value={settings.passingScore} onChange={(e) => setSettings({ ...settings, passingScore: Number(e.target.value) })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
-          <select value={settings.timerMode} onChange={(e) => setSettings({ ...settings, timerMode: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+          <input value={settings.title} onChange={(e) => setSettings({ ...settings, title: e.target.value })} className="border border-border bg-white px-4 py-3" />
+          <input value={settings.courseCode} onChange={(e) => setSettings({ ...settings, courseCode: e.target.value })} className="border border-border bg-white px-4 py-3" />
+          <input type="number" value={settings.duration} onChange={(e) => setSettings({ ...settings, duration: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
+          <input type="number" value={settings.passingScore} onChange={(e) => setSettings({ ...settings, passingScore: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
+          <select value={settings.timerMode} onChange={(e) => setSettings({ ...settings, timerMode: e.target.value })} className="border border-border bg-white px-4 py-3">
             <option value="full_exam">Full exam timer</option>
             <option value="per_question">Per question timer</option>
           </select>
-          <select value={settings.questionLayout} onChange={(e) => setSettings({ ...settings, questionLayout: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+          <select value={settings.questionLayout} onChange={(e) => setSettings({ ...settings, questionLayout: e.target.value })} className="border border-border bg-white px-4 py-3">
             <option value="single_question">Single question</option>
             <option value="scroll_all">Scroll all</option>
           </select>
-          <input type="number" value={settings.questionTimeSec} onChange={(e) => setSettings({ ...settings, questionTimeSec: Number(e.target.value) })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
-          <input type="number" value={settings.maxViolations} onChange={(e) => setSettings({ ...settings, maxViolations: Number(e.target.value) })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+          <input type="number" value={settings.questionTimeSec} onChange={(e) => setSettings({ ...settings, questionTimeSec: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
+          <input type="number" value={settings.maxViolations} onChange={(e) => setSettings({ ...settings, maxViolations: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
@@ -166,52 +166,52 @@ export function ExamDetail({ examId }: { examId: string }) {
             ["allowMobile", "Allow mobile"],
             ["isActive", "Exam is active"],
           ].map(([key, label]) => (
-            <label key={key} className="flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm">
+            <label key={key} className="flex items-center gap-3 border border-border bg-white px-4 py-3 text-sm">
               <input checked={Boolean(settings[key])} onChange={(e) => setSettings({ ...settings, [key]: e.target.checked })} type="checkbox" />
               <span>{label}</span>
             </label>
           ))}
         </div>
         <div className="mt-5">
-          <button onClick={() => void saveSettings()} className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-medium text-[var(--accent-foreground)]">
+          <button onClick={() => void saveSettings()} className="bg-accent px-5 py-2 text-sm font-medium text-accent-foreground">
             Save Settings
           </button>
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--panel)] p-6">
+      <section className="border border-border bg-white/80 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">Question Bank</p>
-            <h3 className="mt-2 text-2xl font-semibold">Create and manage exam questions.</h3>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Question Bank</p>
+            <h3 className="mt-2 text-2xl font-medium">Create and manage exam questions.</h3>
           </div>
           <div className="flex flex-wrap gap-3">
             <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void uploadQuestionImage(file); }} />
             <input ref={importRef} type="file" accept=".xlsx" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importQuestions(file); }} />
-            <button onClick={() => imageRef.current?.click()} className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium">Upload Image</button>
-            <button onClick={() => importRef.current?.click()} className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium">Import Questions</button>
+            <button onClick={() => imageRef.current?.click()} className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors">Upload Image</button>
+            <button onClick={() => importRef.current?.click()} className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors">Import Questions</button>
           </div>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <textarea value={questionForm.text} onChange={(e) => setQuestionForm({ ...questionForm, text: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3 md:col-span-2" placeholder="Question text" rows={4} />
-          <input value={questionForm.optionA} onChange={(e) => setQuestionForm({ ...questionForm, optionA: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Option A" />
-          <input value={questionForm.optionB} onChange={(e) => setQuestionForm({ ...questionForm, optionB: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Option B" />
-          <input value={questionForm.optionC} onChange={(e) => setQuestionForm({ ...questionForm, optionC: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Option C" />
-          <input value={questionForm.optionD} onChange={(e) => setQuestionForm({ ...questionForm, optionD: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Option D" />
-          <select value={questionForm.correctOption} onChange={(e) => setQuestionForm({ ...questionForm, correctOption: e.target.value })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+          <textarea value={questionForm.text} onChange={(e) => setQuestionForm({ ...questionForm, text: e.target.value })} className="border border-border bg-white px-4 py-3 md:col-span-2" placeholder="Question text" rows={4} />
+          <input value={questionForm.optionA} onChange={(e) => setQuestionForm({ ...questionForm, optionA: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option A" />
+          <input value={questionForm.optionB} onChange={(e) => setQuestionForm({ ...questionForm, optionB: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option B" />
+          <input value={questionForm.optionC} onChange={(e) => setQuestionForm({ ...questionForm, optionC: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option C" />
+          <input value={questionForm.optionD} onChange={(e) => setQuestionForm({ ...questionForm, optionD: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option D" />
+          <select value={questionForm.correctOption} onChange={(e) => setQuestionForm({ ...questionForm, correctOption: e.target.value })} className="border border-border bg-white px-4 py-3">
             <option value="A">Correct Option A</option>
             <option value="B">Correct Option B</option>
             <option value="C">Correct Option C</option>
             <option value="D">Correct Option D</option>
           </select>
-          <input type="number" min={1} value={questionForm.points} onChange={(e) => setQuestionForm({ ...questionForm, points: Number(e.target.value) })} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Points" />
-          {questionForm.imageUrl ? <p className="md:col-span-2 text-sm text-[var(--muted)]">Image attached: {questionForm.imageUrl}</p> : null}
+          <input type="number" min={1} value={questionForm.points} onChange={(e) => setQuestionForm({ ...questionForm, points: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" placeholder="Points" />
+          {questionForm.imageUrl ? <p className="md:col-span-2 text-sm text-muted-foreground">Image attached: {questionForm.imageUrl}</p> : null}
           <div className="md:col-span-2 flex flex-wrap gap-3">
-            <button onClick={() => void saveQuestion()} className="rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-medium text-[var(--accent-foreground)]">
+            <button onClick={() => void saveQuestion()} className="bg-accent px-5 py-2 text-sm font-medium text-accent-foreground">
               {editingQuestionId ? "Update Question" : "Add Question"}
             </button>
             {editingQuestionId ? (
-              <button onClick={() => { setEditingQuestionId(null); setQuestionForm(emptyQuestion); }} className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium">
+              <button onClick={() => { setEditingQuestionId(null); setQuestionForm(emptyQuestion); }} className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors">
                 Cancel Edit
               </button>
             ) : null}
@@ -220,12 +220,12 @@ export function ExamDetail({ examId }: { examId: string }) {
 
         <div className="mt-8 space-y-4">
           {data.questions.map((question) => (
-            <div key={question.id} className="rounded-[1.25rem] border border-[var(--line)] bg-[var(--panel-alt)] p-5">
+            <div key={question.id} className="border border-border bg-gray-50 p-5">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Question #{question.sortOrder + 1}</p>
                   <p className="text-base leading-7">{question.text}</p>
-                  <div className="grid gap-1 text-sm text-[var(--muted)]">
+                  <div className="grid gap-1 text-sm text-muted-foreground">
                     <p>A. {question.optionA}</p>
                     <p>B. {question.optionB}</p>
                     <p>C. {question.optionC}</p>
@@ -233,8 +233,8 @@ export function ExamDetail({ examId }: { examId: string }) {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => editQuestion(question)} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">Edit</button>
-                  <button onClick={() => void deleteQuestion(question.id)} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--danger)]">Delete</button>
+                  <button onClick={() => editQuestion(question)} className="border border-border px-4 py-2 text-sm hover:bg-accent/5 transition-colors">Edit</button>
+                  <button onClick={() => void deleteQuestion(question.id)} className="border border-border px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">Delete</button>
                 </div>
               </div>
             </div>
@@ -242,15 +242,15 @@ export function ExamDetail({ examId }: { examId: string }) {
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--panel)] p-6">
+      <section className="border border-border bg-white/80 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-[var(--muted)]">Live Sessions</p>
-            <h3 className="mt-2 text-2xl font-semibold">Monitor student attempts.</h3>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Live Sessions</p>
+            <h3 className="mt-2 text-2xl font-medium">Monitor student attempts.</h3>
           </div>
           <a
             href={`/api/admin/results/export?examId=${examId}`}
-            className="rounded-full border border-[var(--line)] px-5 py-2 text-sm font-medium"
+            className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
           >
             Export Results
           </a>
@@ -259,7 +259,7 @@ export function ExamDetail({ examId }: { examId: string }) {
         <div className="mt-5 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="border-b border-[var(--line)] text-left text-[var(--muted)]">
+              <tr className="border-b border-border text-left text-muted-foreground">
                 <th className="pb-3 pr-4">Student</th>
                 <th className="pb-3 pr-4">Matric</th>
                 <th className="pb-3 pr-4">Status</th>
@@ -274,7 +274,7 @@ export function ExamDetail({ examId }: { examId: string }) {
                 </tr>
               ) : (
                 data.sessions.map((session) => (
-                  <tr key={session.id} className="border-b border-[var(--line)]/60">
+                  <tr key={session.id} className="border-b border-border/60">
                     <td className="py-4 pr-4">{session.studentName}</td>
                     <td className="py-4 pr-4">{session.matricNo}</td>
                     <td className="py-4 pr-4">{session.status}</td>
@@ -282,13 +282,13 @@ export function ExamDetail({ examId }: { examId: string }) {
                     <td className="py-4">
                       <div className="flex flex-wrap gap-2">
                         {session.status === "in_progress" ? (
-                          <button onClick={() => void controlSession(session.id, "pause")} className="rounded-full border border-[var(--line)] px-3 py-1">Pause</button>
+                          <button onClick={() => void controlSession(session.id, "pause")} className="border border-border px-3 py-1 hover:bg-accent/5 transition-colors">Pause</button>
                         ) : null}
                         {session.status === "paused" ? (
-                          <button onClick={() => void controlSession(session.id, "resume")} className="rounded-full border border-[var(--line)] px-3 py-1">Resume</button>
+                          <button onClick={() => void controlSession(session.id, "resume")} className="border border-border px-3 py-1 hover:bg-accent/5 transition-colors">Resume</button>
                         ) : null}
                         {(session.status === "paused" || session.status === "in_progress") ? (
-                          <button onClick={() => void controlSession(session.id, "final_submit")} className="rounded-full border border-[var(--line)] px-3 py-1 text-[var(--danger)]">Final Submit</button>
+                          <button onClick={() => void controlSession(session.id, "final_submit")} className="border border-border px-3 py-1 text-red-600 hover:bg-red-50 transition-colors">Final Submit</button>
                         ) : null}
                       </div>
                     </td>
@@ -300,7 +300,7 @@ export function ExamDetail({ examId }: { examId: string }) {
         </div>
       </section>
 
-      {message ? <p className="text-sm text-[var(--muted)]">{message}</p> : null}
+      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
     </div>
   );
 }
