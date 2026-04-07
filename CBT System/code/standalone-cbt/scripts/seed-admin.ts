@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { hashSync } from "bcryptjs";
 import { db } from "../src/lib/db";
 import { admins } from "../src/lib/db/schema";
