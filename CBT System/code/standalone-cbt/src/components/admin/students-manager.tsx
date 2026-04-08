@@ -6,9 +6,10 @@ import {
   Plus,
   FileSpreadsheet,
   Pencil,
-  Trash2,
   Users,
   X,
+  Download,
+  Trash2,
 } from "lucide-react";
 
 type Student = {
@@ -127,9 +128,14 @@ export function StudentsManager() {
     const formData = new FormData();
     formData.append("file", file);
     const response = await fetch("/api/admin/students/import", { method: "POST", body: formData });
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      data = { success: false, error: "Server returned invalid response." };
+    }
     if (response.ok && data.success) {
-      toast.success(`Imported ${data.data.imported} student records.`);
+      toast.success(`Imported ${data.data?.imported || 0} student records.`);
     } else {
       toast.error(data.error || "Import failed.");
     }
@@ -169,6 +175,10 @@ export function StudentsManager() {
               if (file) void importStudents(file);
             }}
           />
+          <a href="/api/admin/templates/students" className="btn btn-ghost flex-1 sm:flex-none" download>
+            <Download size={15} strokeWidth={1.5} />
+            Get template
+          </a>
           <button onClick={() => fileRef.current?.click()} className="btn btn-ghost flex-1 sm:flex-none">
             <FileSpreadsheet size={15} strokeWidth={1.5} />
             Import Excel

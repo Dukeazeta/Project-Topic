@@ -45,28 +45,33 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 }
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminFromRequest(request);
-  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id } = await context.params;
-  const formData = await request.formData();
-  const file = formData.get("file");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Please upload an Excel file." }, { status: 400 });
+  try {
+    const admin = await getAdminFromRequest(request);
+    if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { id } = await context.params;
+    const formData = await request.formData();
+    const file = formData.get("file");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "Please upload an Excel file." }, { status: 400 });
+    }
+
+    const workbook = await readWorkbook(file);
+    const rows = parseQuestionSheet(workbook);
+
+    const existing = await db.select().from(questions).where(eq(questions.examId, id));
+    let order = existing.length;
+    for (const row of rows) {
+      await db.insert(questions).values({
+        examId: id,
+        ...row,
+        sortOrder: order,
+      });
+      order += 1;
+    }
+
+    return NextResponse.json({ success: true, data: { imported: rows.length } });
+  } catch (err: any) {
+    console.error("Upload error:", err);
+    return NextResponse.json({ error: "Failed to parse Excel file. Ensure it matches the template." }, { status: 500 });
   }
-
-  const workbook = await readWorkbook(file);
-  const rows = parseQuestionSheet(workbook);
-
-  const existing = await db.select().from(questions).where(eq(questions.examId, id));
-  let order = existing.length;
-  for (const row of rows) {
-    await db.insert(questions).values({
-      examId: id,
-      ...row,
-      sortOrder: order,
-    });
-    order += 1;
-  }
-
-  return NextResponse.json({ success: true, data: { imported: rows.length } });
 }

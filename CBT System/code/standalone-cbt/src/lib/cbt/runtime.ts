@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { answers, db, exams, questions, sessions, students, violations } from "@/lib/db";
 
@@ -67,7 +67,11 @@ export async function getExamWithQuestions(examId: string) {
 }
 
 export async function getStudentByCredentials(matricNo: string, surname: string) {
-  const [student] = await db.select().from(students).where(eq(students.matricNo, matricNo)).limit(1);
+  const [student] = await db
+    .select()
+    .from(students)
+    .where(sql`lower(${students.matricNo}) = ${matricNo.trim().toLowerCase()}`)
+    .limit(1);
   if (!student) return null;
   if (normalizeSurname(student.surname) !== normalizeSurname(surname)) return null;
   return student;

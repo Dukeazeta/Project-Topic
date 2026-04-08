@@ -113,7 +113,7 @@ export default function PublicExamPage() {
         </div>
 
         {/* Login form */}
-        <div className="grid gap-6 mt-6 lg:grid-cols-[1fr_400px]">
+        <div className="flex flex-col-reverse gap-6 mt-6 lg:grid lg:grid-cols-[1fr_400px]">
           {/* Instructions */}
           <div className="section-card">
             <span className="section-label">Instructions</span>
@@ -161,29 +161,31 @@ export default function PublicExamPage() {
           </div>
 
           {/* Sign in card */}
-          <div className="section-card" style={{ boxShadow: "var(--shadow-lg)" }}>
-            <span className="section-label">Student sign in</span>
-            <h2 className="mt-2 text-lg font-semibold tracking-tight">Enter your details</h2>
+          <div className="section-card" style={{ boxShadow: "var(--shadow-xl)", border: "2px solid var(--border)", padding: "2rem 1.5rem" }}>
+            <span className="section-label" style={{ color: "var(--accent)" }}>Student sign in</span>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight lg:text-2xl">Enter your details</h2>
 
-            <form className="mt-6 space-y-4" onSubmit={submit}>
+            <form className="mt-8 space-y-5" onSubmit={submit}>
               <div className="field-group">
-                <label htmlFor="matric" className="field-label">Matric number</label>
+                <label htmlFor="matric" className="field-label text-sm">Matric number</label>
                 <input
                   id="matric"
                   value={matricNo}
                   onChange={(e) => setMatricNo(e.target.value)}
                   className="input"
+                  style={{ padding: "14px 16px", fontSize: "1rem" }}
                   placeholder="e.g. 2020/1/12345"
                   required
                 />
               </div>
               <div className="field-group">
-                <label htmlFor="surname" className="field-label">Surname</label>
+                <label htmlFor="surname" className="field-label text-sm">Surname</label>
                 <input
                   id="surname"
                   value={surname}
                   onChange={(e) => setSurname(e.target.value)}
                   className="input"
+                  style={{ padding: "14px 16px", fontSize: "1rem" }}
                   placeholder="Your last name"
                   required
                 />
@@ -207,16 +209,17 @@ export default function PublicExamPage() {
                 type="submit"
                 disabled={loading || Boolean(info?.availabilityError)}
                 className="btn btn-accent w-full"
+                style={{ padding: "16px", fontSize: "1.05rem" }}
               >
                 {loading ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <Loader2 size={18} className="animate-spin" />
                     Checking...
                   </>
                 ) : (
                   <>
                     Enter exam
-                    <ArrowRight size={14} strokeWidth={2} />
+                    <ArrowRight size={18} strokeWidth={2} />
                   </>
                 )}
               </button>

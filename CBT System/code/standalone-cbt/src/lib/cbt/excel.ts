@@ -54,3 +54,25 @@ export function parseQuestionSheet(workbook: ExcelJS.Workbook) {
 
   return rows;
 }
+
+export async function createStudentTemplate() {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Students");
+  sheet.addRow(["Matric No", "Surname", "First Name"]);
+  sheet.addRow(["CSC/2026/001", "Doe", "John"]);
+  sheet.getRow(1).font = { bold: true };
+  sheet.columns = [{ width: 20 }, { width: 25 }, { width: 25 }];
+  return await workbook.xlsx.writeBuffer();
+}
+
+export async function createQuestionTemplate() {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Questions");
+  sheet.addRow(["Question Text", "Option A", "Option B", "Option C", "Option D", "Correct Option (A/B/C/D)", "Points"]);
+  sheet.addRow(["What is the capital of France?", "London", "Berlin", "Paris", "Madrid", "C", 1]);
+  sheet.getRow(1).font = { bold: true };
+  sheet.columns = [
+    { width: 40 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 30 }, { width: 10 }
+  ];
+  return await workbook.xlsx.writeBuffer();
+}

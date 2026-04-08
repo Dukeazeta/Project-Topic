@@ -15,6 +15,7 @@ import {
   ChevronDown,
   RefreshCcw,
   Eye,
+  X,
 } from "lucide-react";
 
 type ExamDetailData = {
@@ -84,6 +85,7 @@ export function ExamDetail({ examId }: { examId: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [questionsOpen, setQuestionsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [viewingSession, setViewingSession] = useState<any>(null);
   const importRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
 
@@ -220,9 +222,15 @@ export function ExamDetail({ examId }: { examId: string }) {
       method: "PUT",
       body: formData,
     });
-    const payload = await response.json();
+    let payload;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = { success: false, error: "Server returned invalid response." };
+    }
+    
     if (response.ok && payload.success) {
-      toast.success(`Imported ${payload.data.imported} questions.`);
+      toast.success(`Imported ${payload.data?.imported || 0} questions.`);
     } else {
       toast.error(payload.error || "Import failed.");
     }
@@ -261,6 +269,20 @@ export function ExamDetail({ examId }: { examId: string }) {
     await fetch(`/api/admin/exams/${examId}/sessions/${sessionId}`, { method: "DELETE" });
     toast.success("Session deleted.");
     await load();
+  };
+
+  const viewSession = async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/admin/exams/${examId}/sessions/${sessionId}`);
+      const payload = await response.json();
+      if (response.ok && payload.success) {
+        setViewingSession(payload.data);
+      } else {
+        toast.error("Unable to load session details.");
+      }
+    } catch {
+      toast.error("Unable to load session details.");
+    }
   };
 
   const confirmSessionDelete = (sessionId: string) => {
@@ -439,7 +461,10 @@ export function ExamDetail({ examId }: { examId: string }) {
           <div className="flex flex-wrap gap-2">
             <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void uploadQuestionImage(file); }} />
             <input ref={importRef} type="file" accept=".xlsx" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importQuestions(file); }} />
-
+            <a href="/api/admin/templates/questions" className="btn btn-ghost btn-sm" download>
+              <Download size={14} strokeWidth={1.5} />
+              Get template
+            </a>
             <button onClick={() => importRef.current?.click()} className="btn btn-ghost btn-sm">
               <FileSpreadsheet size={14} strokeWidth={1.5} />
               Import Excel
@@ -633,16 +658,9 @@ export function ExamDetail({ examId }: { examId: string }) {
                     <td>
                       <div className="flex flex-wrap gap-1">
                         <button
-                          onClick={() => {
-                            if (session.status === "completed") {
-                              const newWindow = window.open(`/exam/${examId}/result?sessionId=${session.id}`, '_blank');
-                              if (!newWindow) toast.info("Result viewing available via the public link");
-                            } else {
-                              toast.info("Session must be completed to view detailed results.");
-                            }
-                          }}
+                          onClick={() => void viewSession(session.id)}
                           className="btn btn-ghost"
-                          title="View result"
+                          title="View details"
                           style={{ padding: "6px", height: "auto" }}
                         >
                           <Eye size={14} strokeWidth={1.5} />
@@ -674,6 +692,86 @@ export function ExamDetail({ examId }: { examId: string }) {
           </table>
         </div>
       </div>
+
+      {/* ── Session Detail Modal ─────────────── */}
+      {viewingSession ? (
+        <div className="modal-backdrop" onClick={() => setViewingSession(null)}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "600px", maxHeight: "80vh", overflow: "auto" }}
+          >
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 className="modal-title" style={{ marginBottom: "4px" }}>Session Details</h3>
+                <span className={`badge ${
+                  viewingSession.session.status === "in_progress" ? "badge-active"
+                    : viewingSession.session.status === "paused" ? "badge-warning"
+                    : "badge-closed"
+                }`}>
+                  {viewingSession.session.status.replaceAll("_", " ")}
+                </span>
+              </div>
+              <button onClick={() => setViewingSession(null)} className="btn btn-ghost" style={{ padding: "6px" }}>
+                <X size={16} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="rounded-[var(--radius-md)] px-3 py-3" style={{ background: "var(--bg-inset)" }}>
+                <p className="text-[10px] uppercase tracking-[0.1em] font-medium" style={{ color: "var(--fg-faint)" }}>Score</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {viewingSession.session.score !== null ? `${viewingSession.session.score}/${viewingSession.session.totalPoints}` : "—"}
+                </p>
+              </div>
+              <div className="rounded-[var(--radius-md)] px-3 py-3" style={{ background: "var(--bg-inset)" }}>
+                <p className="text-[10px] uppercase tracking-[0.1em] font-medium" style={{ color: "var(--fg-faint)" }}>Warnings</p>
+                <p className="mt-1 text-sm font-semibold">{viewingSession.session.warningCount}</p>
+              </div>
+              <div className="rounded-[var(--radius-md)] px-3 py-3" style={{ background: "var(--bg-inset)" }}>
+                <p className="text-[10px] uppercase tracking-[0.1em] font-medium" style={{ color: "var(--fg-faint)" }}>Answered</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {viewingSession.answers.filter((a: any) => a.selectedOption).length}/{viewingSession.questions.length}
+                </p>
+              </div>
+            </div>
+
+            {/* Answers */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--fg-faint)" }}>Questions & Answers</p>
+              {viewingSession.questions.map((q: any, i: number) => {
+                const answer = viewingSession.answers.find((a: any) => a.questionId === q.id);
+                return (
+                  <div
+                    key={q.id}
+                    className="rounded-[var(--radius-sm)] px-3 py-2"
+                    style={{ background: "var(--bg-inset)", fontSize: "0.8125rem" }}
+                  >
+                    <p className="font-medium" style={{ color: "var(--fg)" }}>Q{i + 1}. {q.text}</p>
+                    <p className="mt-1" style={{ color: answer?.selectedOption ? "var(--accent)" : "var(--fg-faint)" }}>
+                      Answer: {answer?.selectedOption || "Not answered"}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Violations */}
+            {viewingSession.violations.length > 0 ? (
+              <div className="mt-4 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--danger)" }}>Violations ({viewingSession.violations.length})</p>
+                {viewingSession.violations.map((v: any, i: number) => (
+                  <div key={i} className="rounded-[var(--radius-sm)] px-3 py-2" style={{ background: "var(--danger-surface)", fontSize: "0.8125rem" }}>
+                    <span className="font-medium">{v.type.replaceAll("_", " ")}</span>
+                    <span className="ml-2" style={{ color: "var(--fg-faint)" }}>{new Date(v.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
