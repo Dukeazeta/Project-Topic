@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckSquare, ArrowRight, Loader2 } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -34,46 +35,88 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-xl border border-border bg-white p-8">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Admin Access</p>
-        <h1 className="mt-4 text-4xl font-medium">Sign in to the standalone CBT dashboard.</h1>
-        <p className="mt-3 text-base leading-8 text-muted-foreground">
-          Use the local admin account created for this standalone app.
-        </p>
-
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Email</span>
-            <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="w-full border border-border bg-white px-4 py-3 outline-none focus:ring-1 focus:ring-accent"
-              placeholder="admin@example.com"
-              type="email"
-              required
-            />
-          </label>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Password</span>
-            <input
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full border border-border bg-white px-4 py-3 outline-none focus:ring-1 focus:ring-accent"
-              placeholder="Password"
-              type="password"
-              required
-            />
-          </label>
-          {error ? <p className="text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2">{error}</p> : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground disabled:opacity-70"
+    <main className="min-h-[100dvh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[400px] fade-in">
+        {/* Branding */}
+        <div className="flex items-center gap-2.5 mb-8">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-[6px]"
+            style={{ background: "var(--accent)" }}
           >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
+            <CheckSquare size={14} strokeWidth={2.5} color="white" />
+          </div>
+          <span className="text-sm font-semibold tracking-tight">
+            Standalone CBT
+          </span>
+        </div>
+
+        {/* Form card */}
+        <div className="section-card" style={{ padding: "32px" }}>
+          <span className="section-label">Admin access</span>
+          <h1
+            className="mt-2 text-xl font-semibold tracking-tight"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            Sign in to your dashboard
+          </h1>
+          <p className="section-subtitle">
+            Use the admin account configured for this system.
+          </p>
+
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+            <div className="field-group">
+              <label htmlFor="email" className="field-label">Email</label>
+              <input
+                id="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="input"
+                placeholder="admin@example.com"
+                type="email"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="password" className="field-label">Password</label>
+              <input
+                id="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="input"
+                placeholder="Enter your password"
+                type="password"
+                required
+              />
+            </div>
+
+            {error ? (
+              <div className="banner-danger">
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-accent w-full"
+              style={{ marginTop: "8px" }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  Signing in
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight size={14} strokeWidth={2} />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </main>
   );

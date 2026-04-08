@@ -1,6 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import {
+  Plus,
+  FileSpreadsheet,
+  Pencil,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 
 type Student = {
   id: number;
@@ -11,14 +20,56 @@ type Student = {
 
 const emptyForm = { matricNo: "", surname: "", firstName: "" };
 
+/* ── Confirmation modal ─────────────────────── */
+function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title">{title}</h3>
+        <p className="modal-text">{message}</p>
+        <div className="modal-actions">
+          <button onClick={onCancel} className="btn btn-ghost btn-sm">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="btn btn-danger btn-sm">
+            {confirmLabel || "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StudentsManager() {
   const [students, setStudents] = useState<Student[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [message, setMessage] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  /* Confirm state */
+  const [confirmDelete, setConfirmDelete] = useState<{
+    open: boolean;
+    studentId: number | null;
+    name: string;
+  }>({ open: false, studentId: null, name: "" });
 
   const load = async () => {
     setLoading(true);
@@ -35,7 +86,6 @@ export function StudentsManager() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
-    setMessage("");
     const url = editingId ? `/api/admin/students/${editingId}` : "/api/admin/students";
     const method = editingId ? "PATCH" : "POST";
     const response = await fetch(url, {
@@ -45,19 +95,21 @@ export function StudentsManager() {
     });
     const data = await response.json();
     if (!response.ok || !data.success) {
-      setMessage(data.error || "Unable to save student.");
+      toast.error(data.error || "Unable to save student.");
       setSaving(false);
       return;
     }
     setForm(emptyForm);
     setEditingId(null);
     setSaving(false);
-    setMessage("Student saved successfully.");
+    if (!editingId) setShowForm(false);
+    toast.success(editingId ? "Student updated." : "Student added.");
     await load();
   };
 
   const startEdit = (student: Student) => {
     setEditingId(student.id);
+    setShowForm(true);
     setForm({
       matricNo: student.matricNo,
       surname: student.surname,
@@ -67,6 +119,7 @@ export function StudentsManager() {
 
   const remove = async (id: number) => {
     await fetch(`/api/admin/students/${id}`, { method: "DELETE" });
+    toast.success("Student removed.");
     await load();
   };
 
@@ -75,148 +128,186 @@ export function StudentsManager() {
     formData.append("file", file);
     const response = await fetch("/api/admin/students/import", { method: "POST", body: formData });
     const data = await response.json();
-    setMessage(
-      response.ok && data.success
-        ? `Imported ${data.data.imported} student records.`
-        : data.error || "Import failed.",
-    );
+    if (response.ok && data.success) {
+      toast.success(`Imported ${data.data.imported} student records.`);
+    } else {
+      toast.error(data.error || "Import failed.");
+    }
     await load();
   };
 
   return (
     <div className="space-y-6">
-      <section className="border border-border bg-white/80 p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Student Management</p>
-            <h2 className="mt-2 text-2xl font-medium">Create and manage exam candidates.</h2>
-          </div>
-          <div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".xlsx"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void importStudents(file);
-              }}
-            />
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
-            >
-              Import Excel
-            </button>
-          </div>
-        </div>
+      {/* Confirm dialog */}
+      <ConfirmDialog
+        open={confirmDelete.open}
+        title="Remove student"
+        message={`Are you sure you want to remove ${confirmDelete.name}? This action cannot be undone.`}
+        confirmLabel="Remove"
+        onConfirm={() => {
+          if (confirmDelete.studentId) void remove(confirmDelete.studentId);
+          setConfirmDelete({ open: false, studentId: null, name: "" });
+        }}
+        onCancel={() => setConfirmDelete({ open: false, studentId: null, name: "" })}
+      />
 
-        <form className="mt-6 grid gap-4 md:grid-cols-3" onSubmit={submit}>
+      {/* Page header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <span className="section-label">Students</span>
+          <h1 className="section-title">Student management</h1>
+          <p className="section-subtitle">Add students manually or import from Excel.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <input
-            value={form.matricNo}
-            onChange={(event) => setForm((current) => ({ ...current, matricNo: event.target.value }))}
-            className="border border-border bg-white px-4 py-3"
-            placeholder="Matric number"
-            required
+            ref={fileRef}
+            type="file"
+            accept=".xlsx"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void importStudents(file);
+            }}
           />
-          <input
-            value={form.surname}
-            onChange={(event) => setForm((current) => ({ ...current, surname: event.target.value }))}
-            className="border border-border bg-white px-4 py-3"
-            placeholder="Surname"
-            required
-          />
-          <input
-            value={form.firstName}
-            onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))}
-            className="border border-border bg-white px-4 py-3"
-            placeholder="First name"
-            required
-          />
-          <div className="md:col-span-3 flex flex-wrap gap-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-accent px-5 py-2 text-sm font-medium text-accent-foreground"
-            >
-              {saving ? "Saving..." : editingId ? "Update Student" : "Add Student"}
-            </button>
-            {editingId ? (
+          <button onClick={() => fileRef.current?.click()} className="btn btn-ghost flex-1 sm:flex-none">
+            <FileSpreadsheet size={15} strokeWidth={1.5} />
+            Import Excel
+          </button>
+          <button
+            onClick={() => { setShowForm(!showForm); setEditingId(null); setForm(emptyForm); }}
+            className="btn btn-accent flex-1 sm:flex-none"
+          >
+            <Plus size={15} strokeWidth={2} />
+            Add student
+          </button>
+        </div>
+      </div>
+
+      {/* Add/Edit form — collapsible */}
+      {showForm ? (
+        <div className="section-card fade-in">
+          <div className="section-header">
+            <span className="section-label">
+              {editingId ? "Edit student" : "New student"}
+            </span>
+          </div>
+          <form className="mt-5 grid gap-4 md:grid-cols-3" onSubmit={submit}>
+            <div className="field-group">
+              <label className="field-label">Matric number</label>
+              <input
+                value={form.matricNo}
+                onChange={(e) => setForm((c) => ({ ...c, matricNo: e.target.value }))}
+                className="input"
+                placeholder="e.g. 2020/1/12345"
+                required
+              />
+            </div>
+            <div className="field-group">
+              <label className="field-label">Surname</label>
+              <input
+                value={form.surname}
+                onChange={(e) => setForm((c) => ({ ...c, surname: e.target.value }))}
+                className="input"
+                placeholder="Last name"
+                required
+              />
+            </div>
+            <div className="field-group">
+              <label className="field-label">First name</label>
+              <input
+                value={form.firstName}
+                onChange={(e) => setForm((c) => ({ ...c, firstName: e.target.value }))}
+                className="input"
+                placeholder="First name"
+                required
+              />
+            </div>
+            <div className="md:col-span-3 flex flex-wrap gap-3">
+              <button type="submit" disabled={saving} className="btn btn-accent">
+                {saving ? "Saving..." : editingId ? "Update student" : "Add student"}
+              </button>
               <button
                 type="button"
-                onClick={() => {
-                  setEditingId(null);
-                  setForm(emptyForm);
-                }}
-                className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
+                onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); }}
+                className="btn btn-ghost"
               >
-                Cancel Edit
+                Cancel
               </button>
-            ) : null}
-          </div>
-        </form>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
-        {message ? <p className="mt-4 text-sm text-muted-foreground">{message}</p> : null}
-      </section>
-
-      <section className="border border-border bg-white/80 p-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold">Student List</h3>
-          <span className="text-sm text-muted-foreground">{students.length} students</span>
+      {/* Student list */}
+      <div className="section-card">
+        <div className="section-header-row">
+          <span className="section-label">Student list</span>
+          <span className="text-xs tabular-nums" style={{ color: "var(--fg-faint)" }}>
+            {students.length} {students.length === 1 ? "student" : "students"}
+          </span>
         </div>
 
-        <div className="mt-5 overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="pb-3 pr-4">Matric No</th>
-                <th className="pb-3 pr-4">Surname</th>
-                <th className="pb-3 pr-4">First Name</th>
-                <th className="pb-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+        {loading ? (
+          <div className="mt-5 space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="skeleton" style={{ height: "48px" }} />
+            ))}
+          </div>
+        ) : students.length === 0 ? (
+          <div className="empty-state" style={{ paddingTop: "36px", paddingBottom: "36px" }}>
+            <Users className="empty-state-icon" strokeWidth={1} />
+            <p className="empty-state-text">
+              No students registered yet. Add students manually or import from an Excel file.
+            </p>
+          </div>
+        ) : (
+          <div className="table-wrapper">
+            <table className="table-base">
+              <thead>
                 <tr>
-                  <td className="py-4" colSpan={4}>
-                    Loading students...
-                  </td>
+                  <th>Matric no.</th>
+                  <th>Surname</th>
+                  <th>First name</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
-              ) : students.length === 0 ? (
-                <tr>
-                  <td className="py-4" colSpan={4}>
-                    No students yet.
-                  </td>
-                </tr>
-              ) : (
-                students.map((student) => (
-                  <tr key={student.id} className="border-b border-border/60">
-                    <td className="py-4 pr-4">{student.matricNo}</td>
-                    <td className="py-4 pr-4">{student.surname}</td>
-                    <td className="py-4 pr-4">{student.firstName}</td>
-                    <td className="py-4">
-                      <div className="flex flex-wrap gap-2">
+              </thead>
+              <tbody>
+                {students.map((student) => (
+                  <tr key={student.id}>
+                    <td className="tabular-nums" style={{ fontFamily: "var(--font-mono)", fontSize: "0.8125rem" }}>
+                      {student.matricNo}
+                    </td>
+                    <td className="font-medium">{student.surname}</td>
+                    <td>{student.firstName}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <div className="flex justify-end gap-1">
                         <button
                           onClick={() => startEdit(student)}
-                          className="border border-border px-3 py-1 hover:bg-accent/5 transition-colors"
+                          className="btn btn-ghost btn-sm"
                         >
-                          Edit
+                          <Pencil size={13} strokeWidth={1.5} />
                         </button>
                         <button
-                          onClick={() => void remove(student.id)}
-                          className="border border-border px-3 py-1 text-red-600 hover:bg-red-50 transition-colors"
+                          onClick={() =>
+                            setConfirmDelete({
+                              open: true,
+                              studentId: student.id,
+                              name: `${student.firstName} ${student.surname}`,
+                            })
+                          }
+                          className="btn btn-danger btn-sm"
                         >
-                          Delete
+                          <Trash2 size={13} strokeWidth={1.5} />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

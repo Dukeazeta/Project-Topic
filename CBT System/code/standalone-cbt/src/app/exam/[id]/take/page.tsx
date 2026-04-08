@@ -2,10 +2,54 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import {
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  Circle,
+  Send,
+  Loader2,
+  Timer,
+} from "lucide-react";
 
 import { clearStudentToken, getStudentToken, setStudentResult } from "@/lib/cbt/session-storage";
 import { useAntiCheat } from "@/lib/hooks/use-anti-cheat";
 import { useExamTimer } from "@/lib/hooks/use-exam-timer";
+
+/* ── Confirmation modal ─────────────────────── */
+function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title">{title}</h3>
+        <p className="modal-text">{message}</p>
+        <div className="modal-actions">
+          <button onClick={onCancel} className="btn btn-ghost btn-sm">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="btn btn-accent btn-sm">
+            {confirmLabel || "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ExamTakePage() {
   const params = useParams<{ id: string }>();
@@ -15,6 +59,7 @@ export default function ExamTakePage() {
   const [answers, setAnswers] = useState<Record<number, string | null>>({});
   const [warning, setWarning] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
   const token = useMemo(() => getStudentToken(examId), [examId]);
 
@@ -87,7 +132,7 @@ export default function ExamTakePage() {
     [examId, headers, router, token],
   );
 
-  const { formatted } = useExamTimer(data?.remainingSeconds ?? 0, Boolean(data && !submitting), () => {
+  const { formatted, remainingSeconds: seconds } = useExamTimer(data?.remainingSeconds ?? 0, Boolean(data && !submitting), () => {
     void handleSubmit(true, false);
   });
 
@@ -142,42 +187,104 @@ export default function ExamTakePage() {
     });
   };
 
+  const answeredCount = data?.questions
+    ? data.questions.filter((q: any) => answers[q.id]).length
+    : 0;
+
+  const totalQuestions = data?.questions?.length ?? 0;
+  const isTimeLow = seconds < 120 && seconds > 0;
+
   if (!data) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
-        <div className="animate-spin h-10 w-10 border-4 border-gray-200 border-t-accent rounded-full" />
+      <main className="min-h-[100dvh] flex items-center justify-center" style={{ background: "var(--bg)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="loading-spinner" />
+          <p className="text-sm" style={{ color: "var(--fg-muted)" }}>Loading exam...</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen px-3 py-4 sm:px-6">
-      <div className="mx-auto max-w-6xl space-y-4">
-        <section className="border border-border bg-white/95 p-4 sm:p-6">
+    <main className="min-h-[100dvh] px-3 py-4 sm:px-6" style={{ background: "var(--bg)" }}>
+      {/* Submit confirmation */}
+      <ConfirmDialog
+        open={showSubmitConfirm}
+        title="Submit exam"
+        message={`You have answered ${answeredCount} of ${totalQuestions} questions. Once submitted, you cannot return to this exam. Continue?`}
+        confirmLabel="Submit exam"
+        onConfirm={() => {
+          setShowSubmitConfirm(false);
+          void handleSubmit(false, false);
+        }}
+        onCancel={() => setShowSubmitConfirm(false)}
+      />
+
+      <div className="mx-auto max-w-5xl space-y-4">
+        {/* Exam header bar */}
+        <div
+          className="section-card"
+          style={{ padding: "16px 20px" }}
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Live Exam</p>
-              <h1 className="mt-2 text-2xl font-medium">{data.title}</h1>
+              <span className="section-label">Live exam</span>
+              <h1 className="text-lg font-semibold tracking-tight mt-0.5">{data.title}</h1>
             </div>
-            <div className="border border-border bg-white px-4 py-2 text-sm font-medium">
-              Time Left: {formatted}
+            <div className="flex items-center gap-4">
+              {/* Timer */}
+              <div
+                className="flex items-center gap-2 rounded-[var(--radius-md)] px-3.5 py-2"
+                style={{
+                  background: isTimeLow ? "var(--danger-surface)" : "var(--bg-inset)",
+                  color: isTimeLow ? "var(--danger)" : "var(--fg)",
+                  transition: "all 300ms var(--ease-out)",
+                }}
+              >
+                <Clock size={14} strokeWidth={isTimeLow ? 2 : 1.5} />
+                <span className="text-sm font-semibold tabular-nums">{formatted}</span>
+              </div>
+              {/* Status */}
+              <div className="flex items-center gap-3 text-xs" style={{ color: "var(--fg-muted)" }}>
+                <span className={`badge ${
+                  data.warningCount > 0 ? "badge-warning" : "badge-active"
+                }`}>
+                  {data.warningCount}/{data.maxViolations} warnings
+                </span>
+              </div>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <span>Warnings: {data.warningCount}/{data.maxViolations}</span>
-            <span>Status: {data.status}</span>
-          </div>
-          {warning ? <p className="mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 text-sm">{warning}</p> : null}
-        </section>
 
-        <div className="grid gap-4 xl:grid-cols-[1fr_280px]">
-          <section className="space-y-4">
+          {/* Warning banner */}
+          {warning ? (
+            <div className="banner-warning mt-3">
+              <AlertTriangle size={14} strokeWidth={1.5} className="flex-shrink-0 mt-0.5" />
+              <span>{warning}</span>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[1fr_260px]">
+          {/* Questions */}
+          <section className="space-y-3">
             {(data.questions || []).map((question: any, index: number) => (
-              <article id={`question-${question.id}`} key={question.id} className="border border-border bg-white/85 p-5">
+              <article
+                id={`question-${question.id}`}
+                key={question.id}
+                className="section-card"
+                style={{ padding: "20px 24px" }}
+              >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
-                    Question {index + 1}
-                  </p>
+                  <div className="flex items-center gap-2.5">
+                    {answers[question.id] ? (
+                      <CheckCircle2 size={16} strokeWidth={2} style={{ color: "var(--accent)" }} />
+                    ) : (
+                      <Circle size={16} strokeWidth={1.5} style={{ color: "var(--fg-faint)" }} />
+                    )}
+                    <span className="text-xs font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--fg-muted)" }}>
+                      Question {index + 1}
+                    </span>
+                  </div>
                   {data.timerMode === "per_question" ? (
                     <button
                       type="button"
@@ -188,59 +295,129 @@ export default function ExamTakePage() {
                           body: JSON.stringify({ questionId: question.id }),
                         });
                       }}
-                      className="border border-border px-3 py-1 text-xs hover:bg-accent/5 transition-colors"
+                      className="btn btn-ghost btn-sm"
                     >
-                      Start question timer
+                      <Timer size={12} strokeWidth={1.5} />
+                      Start timer
                     </button>
                   ) : null}
                 </div>
-                <p className="mt-3 text-lg leading-8">{question.text}</p>
+
+                <p className="mt-3 text-sm leading-7">{question.text}</p>
+
                 {question.imageUrl ? (
-                  <img src={question.imageUrl} alt={`Question ${index + 1}`} className="mt-4 max-h-72 rounded-2xl border border-[var(--line)]" />
+                  <img
+                    src={question.imageUrl}
+                    alt={`Question ${index + 1} image`}
+                    className="mt-4 max-h-64 rounded-[var(--radius-md)]"
+                    style={{ border: "1px solid var(--border)" }}
+                  />
                 ) : null}
-                <div className="mt-5 grid gap-3">
-                  {[
+
+                <div className="mt-4 grid gap-2">
+                  {([
                     ["A", question.optionA],
                     ["B", question.optionB],
                     ["C", question.optionC],
                     ["D", question.optionD],
-                  ].map(([letter, text]) => (
-                    <button
-                      key={letter}
-                      onClick={() => void saveAnswer(question.id, letter)}
-                      className={`border px-4 py-4 text-left text-sm transition-colors ${
-                        answers[question.id] === letter
-                          ? "border-accent bg-accent/5"
-                          : "border-border bg-white hover:bg-accent/5"
-                      }`}
-                    >
-                      <span className="font-semibold">{letter}.</span> {text}
-                    </button>
-                  ))}
+                  ] as const).map(([letter, text]) => {
+                    const isSelected = answers[question.id] === letter;
+                    return (
+                      <button
+                        key={letter}
+                        onClick={() => void saveAnswer(question.id, letter)}
+                        className="flex items-start gap-3 rounded-[var(--radius-md)] px-4 py-3.5 text-left text-sm transition-all"
+                        style={{
+                          background: isSelected ? "var(--accent-ghost)" : "var(--surface)",
+                          border: `1px solid ${isSelected ? "var(--accent)" : "var(--border)"}`,
+                          color: isSelected ? "var(--accent)" : "var(--fg)",
+                          transitionDuration: "var(--duration-normal)",
+                          transitionTimingFunction: "var(--ease-out)",
+                        }}
+                      >
+                        <span
+                          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                          style={{
+                            background: isSelected ? "var(--accent)" : "var(--bg-inset)",
+                            color: isSelected ? "white" : "var(--fg-muted)",
+                            transition: "all var(--duration-normal) var(--ease-out)",
+                          }}
+                        >
+                          {letter}
+                        </span>
+                        <span className="pt-0.5">{text}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </article>
             ))}
           </section>
 
-          <aside className="border border-border bg-white p-5 h-max xl:sticky xl:top-4">
-            <h2 className="text-xl font-medium">Navigator</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(data.questions || []).map((question: any, index: number) => (
-                <a
-                  key={question.id}
-                  href={`#question-${question.id}`}
-                  className="border border-border px-3 py-1 text-xs hover:bg-accent/5 transition-colors"
-                >
-                  {index + 1}
-                </a>
-              ))}
-            </div>
-            <button
-              onClick={() => void handleSubmit(false, false)}
-              disabled={submitting || data.status !== "in_progress"}
-              className="mt-6 w-full bg-accent px-4 py-3 text-sm font-medium text-accent-foreground"
+          {/* Sidebar / Navigator */}
+          <aside
+            className="section-card xl:sticky xl:top-4"
+            style={{ height: "max-content", padding: "20px" }}
+          >
+            <h2 className="text-sm font-semibold">Navigator</h2>
+            <p className="text-xs mt-1" style={{ color: "var(--fg-muted)" }}>
+              {answeredCount} of {totalQuestions} answered
+            </p>
+
+            {/* Progress bar */}
+            <div
+              className="mt-3 h-1.5 w-full rounded-full overflow-hidden"
+              style={{ background: "var(--bg-inset)" }}
             >
-              {submitting ? "Submitting..." : "Submit Exam"}
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: totalQuestions > 0 ? `${(answeredCount / totalQuestions) * 100}%` : "0%",
+                  background: "var(--accent)",
+                  transitionDuration: "var(--duration-slow)",
+                  transitionTimingFunction: "var(--ease-out)",
+                }}
+              />
+            </div>
+
+            {/* Question grid */}
+            <div className="mt-4 grid grid-cols-5 gap-1.5">
+              {(data.questions || []).map((question: any, index: number) => {
+                const isAnswered = Boolean(answers[question.id]);
+                return (
+                  <a
+                    key={question.id}
+                    href={`#question-${question.id}`}
+                    className="flex items-center justify-center rounded-[6px] py-1.5 text-xs font-medium tabular-nums transition-colors"
+                    style={{
+                      background: isAnswered ? "var(--accent)" : "var(--bg-inset)",
+                      color: isAnswered ? "white" : "var(--fg-muted)",
+                      transitionDuration: "var(--duration-fast)",
+                    }}
+                  >
+                    {index + 1}
+                  </a>
+                );
+              })}
+            </div>
+
+            {/* Submit button */}
+            <button
+              onClick={() => setShowSubmitConfirm(true)}
+              disabled={submitting || data.status !== "in_progress"}
+              className="btn btn-accent w-full mt-5"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send size={14} strokeWidth={2} />
+                  Submit exam
+                </>
+              )}
             </button>
           </aside>
         </div>

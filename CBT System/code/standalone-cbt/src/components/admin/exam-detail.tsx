@@ -1,6 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import {
+  Upload,
+  FileSpreadsheet,
+  Trash2,
+  Pencil,
+  ExternalLink,
+  Download,
+  Pause,
+  Play,
+  Square,
+  ChevronDown,
+  RefreshCcw,
+  Eye,
+} from "lucide-react";
 
 type ExamDetailData = {
   exam: any;
@@ -19,38 +34,116 @@ const emptyQuestion = {
   points: 1,
 };
 
+/* ── Confirmation modal ─────────────────────── */
+function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  danger,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  danger?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title">{title}</h3>
+        <p className="modal-text">{message}</p>
+        <div className="modal-actions">
+          <button onClick={onCancel} className="btn btn-ghost btn-sm">
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`btn btn-sm ${danger ? "btn-danger" : "btn-accent"}`}
+          >
+            {confirmLabel || "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ExamDetail({ examId }: { examId: string }) {
   const [data, setData] = useState<ExamDetailData | null>(null);
   const [settings, setSettings] = useState<any | null>(null);
   const [questionForm, setQuestionForm] = useState(emptyQuestion);
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
-  const [message, setMessage] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savingQuestion, setSavingQuestion] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [questionsOpen, setQuestionsOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
-    const response = await fetch(`/api/admin/exams/${examId}`, { cache: "no-store" });
-    const payload = await response.json();
-    setData(payload.data);
-    setSettings(payload.data.exam);
+  /* Confirm dialog state */
+  const [confirm, setConfirm] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    danger?: boolean;
+    onConfirm: () => void;
+  }>({ open: false, title: "", message: "", onConfirm: () => {} });
+
+  const closeConfirm = () => setConfirm((c) => ({ ...c, open: false }));
+
+  const load = async (background = false) => {
+    if (!background) setIsRefreshing(true);
+    try {
+      const response = await fetch(`/api/admin/exams/${examId}`, { cache: "no-store" });
+      const payload = await response.json();
+      setData(payload.data);
+      if (!background) {
+        setSettings(payload.data.exam);
+      }
+    } finally {
+      if (!background) setIsRefreshing(false);
+    }
   };
 
   useEffect(() => {
     void load();
   }, [examId]);
 
+  // Polling for live sessions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void load(true);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [examId]);
+
   const saveSettings = async () => {
+    setSavingSettings(true);
     const response = await fetch(`/api/admin/exams/${examId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(settings),
     });
     const payload = await response.json();
-    setMessage(response.ok && payload.success ? "Exam settings saved." : payload.error || "Unable to save exam settings.");
+    if (response.ok && payload.success) {
+      toast.success("Exam settings saved.");
+    } else {
+      toast.error(payload.error || "Unable to save exam settings.");
+    }
+    setSavingSettings(false);
     await load();
   };
 
   const saveQuestion = async () => {
+    setSavingQuestion(true);
     const url = editingQuestionId
       ? `/api/admin/exams/${examId}/questions/${editingQuestionId}`
       : `/api/admin/exams/${examId}/questions`;
@@ -61,9 +154,14 @@ export function ExamDetail({ examId }: { examId: string }) {
       body: JSON.stringify(questionForm),
     });
     const payload = await response.json();
-    setMessage(response.ok && payload.success ? "Question saved." : payload.error || "Unable to save question.");
+    if (response.ok && payload.success) {
+      toast.success(editingQuestionId ? "Question updated." : "Question added.");
+    } else {
+      toast.error(payload.error || "Unable to save question.");
+    }
     setEditingQuestionId(null);
     setQuestionForm(emptyQuestion);
+    setSavingQuestion(false);
     await load();
   };
 
@@ -83,7 +181,22 @@ export function ExamDetail({ examId }: { examId: string }) {
 
   const deleteQuestion = async (questionId: number) => {
     await fetch(`/api/admin/exams/${examId}/questions/${questionId}`, { method: "DELETE" });
+    toast.success("Question deleted.");
     await load();
+  };
+
+  const confirmDeleteQuestion = (questionId: number) => {
+    setConfirm({
+      open: true,
+      title: "Delete question",
+      message: "This question will be permanently removed from the exam. This action cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+      onConfirm: () => {
+        closeConfirm();
+        void deleteQuestion(questionId);
+      },
+    });
   };
 
   const uploadQuestionImage = async (file: File) => {
@@ -94,9 +207,9 @@ export function ExamDetail({ examId }: { examId: string }) {
     const payload = await response.json();
     if (response.ok && payload.success) {
       setQuestionForm((current) => ({ ...current, imageUrl: payload.data.imageUrl }));
-      setMessage("Image uploaded.");
+      toast.success("Image uploaded.");
     } else {
-      setMessage(payload.error || "Unable to upload image.");
+      toast.error(payload.error || "Unable to upload image.");
     }
   };
 
@@ -108,7 +221,11 @@ export function ExamDetail({ examId }: { examId: string }) {
       body: formData,
     });
     const payload = await response.json();
-    setMessage(response.ok && payload.success ? `Imported ${payload.data.imported} questions.` : payload.error || "Import failed.");
+    if (response.ok && payload.success) {
+      toast.success(`Imported ${payload.data.imported} questions.`);
+    } else {
+      toast.error(payload.error || "Import failed.");
+    }
     await load();
   };
 
@@ -118,178 +235,436 @@ export function ExamDetail({ examId }: { examId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     });
+    toast.success(`Session ${action === "final_submit" ? "submitted" : action + "d"}.`);
     await load();
   };
 
+  const confirmSessionAction = (sessionId: string, action: string) => {
+    if (action !== "final_submit") {
+      void controlSession(sessionId, action);
+      return;
+    }
+    setConfirm({
+      open: true,
+      title: "Force submit session",
+      message: "This will end the student's exam immediately and submit their current answers. This cannot be undone.",
+      confirmLabel: "Force submit",
+      danger: true,
+      onConfirm: () => {
+        closeConfirm();
+        void controlSession(sessionId, action);
+      },
+    });
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    await fetch(`/api/admin/exams/${examId}/sessions/${sessionId}`, { method: "DELETE" });
+    toast.success("Session deleted.");
+    await load();
+  };
+
+  const confirmSessionDelete = (sessionId: string) => {
+    setConfirm({
+      open: true,
+      title: "Delete session",
+      message: "This will permanently delete the student's entire session and answers. They will have to retake the exam from scratch. This cannot be undone.",
+      confirmLabel: "Delete session",
+      danger: true,
+      onConfirm: () => {
+        closeConfirm();
+        void deleteSession(sessionId);
+      },
+    });
+  };
+
   if (!data || !settings) {
-    return <p>Loading exam details...</p>;
+    return (
+      <div className="space-y-4">
+        <div className="skeleton" style={{ height: "120px" }} />
+        <div className="skeleton" style={{ height: "300px" }} />
+        <div className="skeleton" style={{ height: "200px" }} />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <section className="border border-border bg-white/80 p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">{data.exam.courseCode}</p>
-            <h2 className="mt-2 text-3xl font-medium">{data.exam.title}</h2>
-          </div>
+      {/* Confirm dialog */}
+      <ConfirmDialog
+        open={confirm.open}
+        title={confirm.title}
+        message={confirm.message}
+        confirmLabel={confirm.confirmLabel}
+        danger={confirm.danger}
+        onConfirm={confirm.onConfirm}
+        onCancel={closeConfirm}
+      />
+
+      {/* ── Exam Settings ───────────────────────── */}
+      <div className="section-card">
+        <div className="section-header-row">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            className="flex items-center gap-3 text-left"
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          >
+            <ChevronDown
+              size={18}
+              strokeWidth={1.5}
+              style={{
+                color: "var(--fg-muted)",
+                transform: settingsOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                transition: "transform 200ms var(--ease-out)",
+              }}
+            />
+            <div className="section-header">
+              <span className="section-label">{data.exam.courseCode}</span>
+              <h1 className="section-title">{data.exam.title}</h1>
+            </div>
+          </button>
           <a
             href={`/exam/${data.exam.id}`}
             target="_blank"
-            className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
+            className="btn btn-ghost btn-sm"
           >
-            Open Public Exam Link
+            <ExternalLink size={14} strokeWidth={1.5} />
+            Public link
           </a>
         </div>
 
+        {settingsOpen ? (
+        <>
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <input value={settings.title} onChange={(e) => setSettings({ ...settings, title: e.target.value })} className="border border-border bg-white px-4 py-3" />
-          <input value={settings.courseCode} onChange={(e) => setSettings({ ...settings, courseCode: e.target.value })} className="border border-border bg-white px-4 py-3" />
-          <input type="number" value={settings.duration} onChange={(e) => setSettings({ ...settings, duration: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
-          <input type="number" value={settings.passingScore} onChange={(e) => setSettings({ ...settings, passingScore: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
-          <select value={settings.timerMode} onChange={(e) => setSettings({ ...settings, timerMode: e.target.value })} className="border border-border bg-white px-4 py-3">
-            <option value="full_exam">Full exam timer</option>
-            <option value="per_question">Per question timer</option>
-          </select>
-          <select value={settings.questionLayout} onChange={(e) => setSettings({ ...settings, questionLayout: e.target.value })} className="border border-border bg-white px-4 py-3">
-            <option value="single_question">Single question</option>
-            <option value="scroll_all">Scroll all</option>
-          </select>
-          <input type="number" value={settings.questionTimeSec} onChange={(e) => setSettings({ ...settings, questionTimeSec: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
-          <input type="number" value={settings.maxViolations} onChange={(e) => setSettings({ ...settings, maxViolations: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" />
+          <div className="field-group">
+            <label className="field-label">Title</label>
+            <input value={settings.title} onChange={(e) => setSettings({ ...settings, title: e.target.value })} className="input" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Course code</label>
+            <input value={settings.courseCode} onChange={(e) => setSettings({ ...settings, courseCode: e.target.value })} className="input" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Duration (min)</label>
+            <input type="number" value={settings.duration} onChange={(e) => setSettings({ ...settings, duration: Number(e.target.value) })} className="input" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Passing score (%)</label>
+            <input type="number" value={settings.passingScore} onChange={(e) => setSettings({ ...settings, passingScore: Number(e.target.value) })} className="input" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Timer mode</label>
+            <select value={settings.timerMode} onChange={(e) => setSettings({ ...settings, timerMode: e.target.value })} className="input">
+              <option value="full_exam">Full exam timer</option>
+              <option value="per_question">Per question timer</option>
+            </select>
+          </div>
+          <div className="field-group">
+            <label className="field-label">Question layout</label>
+            <select value={settings.questionLayout} onChange={(e) => setSettings({ ...settings, questionLayout: e.target.value })} className="input">
+              <option value="single_question">Single question</option>
+              <option value="scroll_all">Scroll all</option>
+            </select>
+          </div>
+          <div className="field-group">
+            <label className="field-label">Per-question time (sec)</label>
+            <input type="number" value={settings.questionTimeSec} onChange={(e) => setSettings({ ...settings, questionTimeSec: Number(e.target.value) })} className="input" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Max warnings</label>
+            <input type="number" value={settings.maxViolations} onChange={(e) => setSettings({ ...settings, maxViolations: Number(e.target.value) })} className="input" />
+          </div>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {[
+
+        {/* Toggles */}
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {([
             ["shuffleQuestions", "Shuffle questions"],
             ["shuffleOptions", "Shuffle options"],
             ["showResult", "Show result"],
             ["allowMobile", "Allow mobile"],
             ["isActive", "Exam is active"],
-          ].map(([key, label]) => (
-            <label key={key} className="flex items-center gap-3 border border-border bg-white px-4 py-3 text-sm">
-              <input checked={Boolean(settings[key])} onChange={(e) => setSettings({ ...settings, [key]: e.target.checked })} type="checkbox" />
-              <span>{label}</span>
+          ] as const).map(([key, label]) => (
+            <label key={key} className="toggle-wrap">
+              <input
+                checked={Boolean(settings[key])}
+                onChange={(e) => setSettings({ ...settings, [key]: e.target.checked })}
+                type="checkbox"
+                className="toggle-input"
+              />
+              <span className="toggle-switch" />
+              <span className="toggle-label">{label}</span>
             </label>
           ))}
         </div>
-        <div className="mt-5">
-          <button onClick={() => void saveSettings()} className="bg-accent px-5 py-2 text-sm font-medium text-accent-foreground">
-            Save Settings
+
+        <div className="mt-6">
+          <button
+            onClick={() => void saveSettings()}
+            disabled={savingSettings}
+            className="btn btn-accent"
+          >
+            {savingSettings ? "Saving..." : "Save settings"}
           </button>
         </div>
-      </section>
+        </>
+        ) : null}
+      </div>
 
-      <section className="border border-border bg-white/80 p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Question Bank</p>
-            <h3 className="mt-2 text-2xl font-medium">Create and manage exam questions.</h3>
-          </div>
-          <div className="flex flex-wrap gap-3">
+      {/* ── Question Bank ───────────────────────── */}
+      <div className="section-card">
+        <div className="section-header-row">
+          <button
+            type="button"
+            onClick={() => setQuestionsOpen(!questionsOpen)}
+            className="flex items-center gap-3 text-left"
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          >
+            <ChevronDown
+              size={18}
+              strokeWidth={1.5}
+              style={{
+                color: "var(--fg-muted)",
+                transform: questionsOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                transition: "transform 200ms var(--ease-out)",
+              }}
+            />
+            <div className="section-header">
+              <span className="section-label">Question bank</span>
+              <p className="section-subtitle">
+                {data.questions.length} {data.questions.length === 1 ? "question" : "questions"}
+              </p>
+            </div>
+          </button>
+          <div className="flex flex-wrap gap-2">
             <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void uploadQuestionImage(file); }} />
             <input ref={importRef} type="file" accept=".xlsx" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importQuestions(file); }} />
-            <button onClick={() => imageRef.current?.click()} className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors">Upload Image</button>
-            <button onClick={() => importRef.current?.click()} className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors">Import Questions</button>
+
+            <button onClick={() => importRef.current?.click()} className="btn btn-ghost btn-sm">
+              <FileSpreadsheet size={14} strokeWidth={1.5} />
+              Import Excel
+            </button>
           </div>
         </div>
+
+        {questionsOpen ? (
+        <>
+
+        {/* Question form */}
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <textarea value={questionForm.text} onChange={(e) => setQuestionForm({ ...questionForm, text: e.target.value })} className="border border-border bg-white px-4 py-3 md:col-span-2" placeholder="Question text" rows={4} />
-          <input value={questionForm.optionA} onChange={(e) => setQuestionForm({ ...questionForm, optionA: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option A" />
-          <input value={questionForm.optionB} onChange={(e) => setQuestionForm({ ...questionForm, optionB: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option B" />
-          <input value={questionForm.optionC} onChange={(e) => setQuestionForm({ ...questionForm, optionC: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option C" />
-          <input value={questionForm.optionD} onChange={(e) => setQuestionForm({ ...questionForm, optionD: e.target.value })} className="border border-border bg-white px-4 py-3" placeholder="Option D" />
-          <select value={questionForm.correctOption} onChange={(e) => setQuestionForm({ ...questionForm, correctOption: e.target.value })} className="border border-border bg-white px-4 py-3">
-            <option value="A">Correct Option A</option>
-            <option value="B">Correct Option B</option>
-            <option value="C">Correct Option C</option>
-            <option value="D">Correct Option D</option>
-          </select>
-          <input type="number" min={1} value={questionForm.points} onChange={(e) => setQuestionForm({ ...questionForm, points: Number(e.target.value) })} className="border border-border bg-white px-4 py-3" placeholder="Points" />
-          {questionForm.imageUrl ? <p className="md:col-span-2 text-sm text-muted-foreground">Image attached: {questionForm.imageUrl}</p> : null}
+          <div className="field-group md:col-span-2">
+            <label className="field-label">Question text</label>
+            <textarea value={questionForm.text} onChange={(e) => setQuestionForm({ ...questionForm, text: e.target.value })} className="input" placeholder="Enter the question" rows={3} />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Option A</label>
+            <input value={questionForm.optionA} onChange={(e) => setQuestionForm({ ...questionForm, optionA: e.target.value })} className="input" placeholder="Option A" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Option B</label>
+            <input value={questionForm.optionB} onChange={(e) => setQuestionForm({ ...questionForm, optionB: e.target.value })} className="input" placeholder="Option B" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Option C</label>
+            <input value={questionForm.optionC} onChange={(e) => setQuestionForm({ ...questionForm, optionC: e.target.value })} className="input" placeholder="Option C" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Option D</label>
+            <input value={questionForm.optionD} onChange={(e) => setQuestionForm({ ...questionForm, optionD: e.target.value })} className="input" placeholder="Option D" />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Correct option</label>
+            <select value={questionForm.correctOption} onChange={(e) => setQuestionForm({ ...questionForm, correctOption: e.target.value })} className="input">
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
+          </div>
+          <div className="field-group">
+            <label className="field-label">Points</label>
+            <input type="number" min={1} value={questionForm.points} onChange={(e) => setQuestionForm({ ...questionForm, points: Number(e.target.value) })} className="input" />
+          </div>
+          <div className="md:col-span-2 border border-[var(--border-light)] rounded-[var(--radius-md)] p-3 bg-[var(--surface)]">
+            {!questionForm.imageUrl ? (
+              <button type="button" onClick={() => imageRef.current?.click()} className="btn btn-ghost btn-sm">
+                <Upload size={14} strokeWidth={1.5} />
+                Attach image to question
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium" style={{ color: "var(--accent)" }}>Image attached</span>
+                <button
+                  type="button"
+                  onClick={() => setQuestionForm((c) => ({ ...c, imageUrl: "" }))}
+                  className="btn btn-ghost btn-sm shadow-sm"
+                  style={{ color: "var(--danger)", padding: "4px 8px" }}
+                >
+                  <Trash2 size={13} strokeWidth={1.5} />
+                  Remove image
+                </button>
+              </div>
+            )}
+          </div>
           <div className="md:col-span-2 flex flex-wrap gap-3">
-            <button onClick={() => void saveQuestion()} className="bg-accent px-5 py-2 text-sm font-medium text-accent-foreground">
-              {editingQuestionId ? "Update Question" : "Add Question"}
+            <button onClick={() => void saveQuestion()} disabled={savingQuestion} className="btn btn-accent">
+              {savingQuestion ? "Saving..." : editingQuestionId ? "Update question" : "Add question"}
             </button>
             {editingQuestionId ? (
-              <button onClick={() => { setEditingQuestionId(null); setQuestionForm(emptyQuestion); }} className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors">
-                Cancel Edit
+              <button
+                onClick={() => { setEditingQuestionId(null); setQuestionForm(emptyQuestion); }}
+                className="btn btn-ghost"
+              >
+                Cancel
               </button>
             ) : null}
           </div>
         </div>
 
-        <div className="mt-8 space-y-4">
-          {data.questions.map((question) => (
-            <div key={question.id} className="border border-border bg-gray-50 p-5">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Question #{question.sortOrder + 1}</p>
-                  <p className="text-base leading-7">{question.text}</p>
-                  <div className="grid gap-1 text-sm text-muted-foreground">
-                    <p>A. {question.optionA}</p>
-                    <p>B. {question.optionB}</p>
-                    <p>C. {question.optionC}</p>
-                    <p>D. {question.optionD}</p>
+        {/* Question list */}
+        {data.questions.length > 0 ? (
+          <div className="mt-8">
+            <div style={{ borderTop: "1px solid var(--border)" }}>
+              {data.questions.map((question) => (
+                <div
+                  key={question.id}
+                  className="py-5"
+                  style={{ borderBottom: "1px solid var(--border-light)" }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="badge badge-info"
+                          style={{ fontSize: "10px" }}
+                        >
+                          Q{question.sortOrder + 1}
+                        </span>
+                        <span className="text-xs tabular-nums" style={{ color: "var(--fg-faint)" }}>
+                          {question.points} {question.points === 1 ? "pt" : "pts"} — Answer: {question.correctOption}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm leading-relaxed">{question.text}</p>
+                      <div className="mt-2 grid gap-1 text-xs" style={{ color: "var(--fg-muted)" }}>
+                        <span>A. {question.optionA}</span>
+                        <span>B. {question.optionB}</span>
+                        <span>C. {question.optionC}</span>
+                        <span>D. {question.optionD}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button onClick={() => editQuestion(question)} className="btn btn-ghost btn-sm">
+                        <Pencil size={13} strokeWidth={1.5} />
+                      </button>
+                      <button onClick={() => confirmDeleteQuestion(question.id)} className="btn btn-danger btn-sm">
+                        <Trash2 size={13} strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => editQuestion(question)} className="border border-border px-4 py-2 text-sm hover:bg-accent/5 transition-colors">Edit</button>
-                  <button onClick={() => void deleteQuestion(question.id)} className="border border-border px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">Delete</button>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="border border-border bg-white/80 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">Live Sessions</p>
-            <h3 className="mt-2 text-2xl font-medium">Monitor student attempts.</h3>
           </div>
-          <a
-            href={`/api/admin/results/export?examId=${examId}`}
-            className="border border-border px-5 py-2 text-sm font-medium hover:bg-accent/5 transition-colors"
-          >
-            Export Results
-          </a>
+        ) : null}
+        </>
+        ) : null}
+      </div>
+
+      {/* ── Live Sessions ───────────────────────── */}
+      <div className="section-card">
+        <div className="section-header-row">
+          <div className="section-header">
+            <span className="section-label">Live sessions</span>
+            <p className="section-subtitle">Monitor student attempts in real time.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => void load(false)}
+              disabled={isRefreshing}
+              className="btn btn-ghost btn-sm"
+            >
+              <RefreshCcw size={14} strokeWidth={1.5} className={isRefreshing ? "animate-spin" : ""} />
+              Refresh
+            </button>
+            <a href={`/api/admin/results/export?examId=${examId}`} className="btn btn-ghost btn-sm">
+              <Download size={14} strokeWidth={1.5} />
+              Export CSV
+            </a>
+          </div>
         </div>
 
-        <div className="mt-5 overflow-x-auto">
-          <table className="min-w-full text-sm">
+        <div className="table-wrapper">
+          <table className="table-base">
             <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="pb-3 pr-4">Student</th>
-                <th className="pb-3 pr-4">Matric</th>
-                <th className="pb-3 pr-4">Status</th>
-                <th className="pb-3 pr-4">Warnings</th>
-                <th className="pb-3">Action</th>
+              <tr>
+                <th>Student</th>
+                <th>Matric</th>
+                <th>Status</th>
+                <th>Warnings</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {data.sessions.length === 0 ? (
                 <tr>
-                  <td className="py-4" colSpan={5}>No sessions yet.</td>
+                  <td colSpan={5} style={{ color: "var(--fg-faint)", padding: "24px 0" }}>
+                    No sessions have started yet.
+                  </td>
                 </tr>
               ) : (
                 data.sessions.map((session) => (
-                  <tr key={session.id} className="border-b border-border/60">
-                    <td className="py-4 pr-4">{session.studentName}</td>
-                    <td className="py-4 pr-4">{session.matricNo}</td>
-                    <td className="py-4 pr-4">{session.status}</td>
-                    <td className="py-4 pr-4">{session.warningCount}</td>
-                    <td className="py-4">
-                      <div className="flex flex-wrap gap-2">
+                  <tr key={session.id}>
+                    <td className="font-medium">{session.studentName}</td>
+                    <td className="tabular-nums" style={{ fontFamily: "var(--font-mono)", fontSize: "0.8125rem" }}>{session.matricNo}</td>
+                    <td>
+                      <span className={`badge ${
+                        session.status === "in_progress"
+                          ? "badge-active"
+                          : session.status === "paused"
+                          ? "badge-warning"
+                          : session.status === "completed"
+                          ? "badge-info"
+                          : "badge-closed"
+                      }`}>
+                        {session.status.replaceAll("_", " ")}
+                      </span>
+                    </td>
+                    <td className="tabular-nums">{session.warningCount}</td>
+                    <td>
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          onClick={() => {
+                            if (session.status === "completed") {
+                              const newWindow = window.open(`/exam/${examId}/result?sessionId=${session.id}`, '_blank');
+                              if (!newWindow) toast.info("Result viewing available via the public link");
+                            } else {
+                              toast.info("Session must be completed to view detailed results.");
+                            }
+                          }}
+                          className="btn btn-ghost"
+                          title="View result"
+                          style={{ padding: "6px", height: "auto" }}
+                        >
+                          <Eye size={14} strokeWidth={1.5} />
+                        </button>
                         {session.status === "in_progress" ? (
-                          <button onClick={() => void controlSession(session.id, "pause")} className="border border-border px-3 py-1 hover:bg-accent/5 transition-colors">Pause</button>
+                          <button onClick={() => confirmSessionAction(session.id, "pause")} className="btn btn-ghost" title="Pause session" style={{ padding: "6px", height: "auto" }}>
+                            <Pause size={14} strokeWidth={1.5} />
+                          </button>
                         ) : null}
                         {session.status === "paused" ? (
-                          <button onClick={() => void controlSession(session.id, "resume")} className="border border-border px-3 py-1 hover:bg-accent/5 transition-colors">Resume</button>
+                          <button onClick={() => confirmSessionAction(session.id, "resume")} className="btn btn-ghost" title="Resume session" style={{ padding: "6px", height: "auto" }}>
+                            <Play size={14} strokeWidth={1.5} />
+                          </button>
                         ) : null}
-                        {(session.status === "paused" || session.status === "in_progress") ? (
-                          <button onClick={() => void controlSession(session.id, "final_submit")} className="border border-border px-3 py-1 text-red-600 hover:bg-red-50 transition-colors">Final Submit</button>
+                        {session.status === "paused" || session.status === "in_progress" ? (
+                          <button onClick={() => confirmSessionAction(session.id, "final_submit")} className="btn btn-ghost" title="Force submit" style={{ padding: "6px", height: "auto" }}>
+                            <Square size={14} strokeWidth={1.5} />
+                          </button>
                         ) : null}
+                        <button onClick={() => confirmSessionDelete(session.id)} className="btn btn-ghost" title="Delete session" style={{ padding: "6px", height: "auto" }}>
+                          <Trash2 size={14} strokeWidth={1.5} className="text-red-600" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -298,9 +673,7 @@ export function ExamDetail({ examId }: { examId: string }) {
             </tbody>
           </table>
         </div>
-      </section>
-
-      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+      </div>
     </div>
   );
 }
